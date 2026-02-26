@@ -51,7 +51,7 @@ PLOG_TIE_EPS <- 2
 CLOCK_SWITCH_SENSITIVITY <- c(1, 2)
 
 # Output
-OUT_DIR <- "chronos_empirical_out"
+OUT_BASE_DIR <- "chronos_empirical_out"
 OUT_PREFIX <- "terap_empirical"
 CLEAN_PREVIOUS_PREFIX_OUTPUTS <- TRUE
 
@@ -233,6 +233,46 @@ fit_score_chronos <- function(tr) {
   Inf
 }
 
+node_sig_internal <- function(tr) {
+  n <- Ntip(tr)
+  pp <- prop.part(tr)
+  s <- character(tr$Nnode)
+  for (i in seq_len(tr$Nnode)) {
+    tips <- sort(tr$tip.label[pp[[i]]])
+    s[i] <- paste(tips, collapse = "|")
+  }
+  names(s) <- as.character((n + 1):(n + tr$Nnode))
+  s
+}
+
+node_heights_norm <- function(tr) {
+  n <- Ntip(tr)
+  d <- node.depth.edgelength(tr)
+  maxd <- max(d[seq_len(n)])
+  h <- 1 - (d / maxd) # root ~1, tips ~0
+  names(h) <- as.character(seq_along(h))
+  h
+}
+
+branching_tempo_error <- function(phy_ref, tr_est) {
+  ref_sig <- node_sig_internal(phy_ref)
+  est_sig <- node_sig_internal(tr_est)
+  ref_h <- node_heights_norm(phy_ref)
+  est_h <- node_heights_norm(tr_est)
+  ref_df <- data.frame(sig = unname(ref_sig), h_ref = as.numeric(ref_h[names(ref_sig)]), stringsAsFactors = FALSE)
+  est_df <- data.frame(sig = unname(est_sig), h_est = as.numeric(est_h[names(est_sig)]), stringsAsFactors = FALSE)
+  j <- merge(ref_df, est_df, by = "sig", all = FALSE)
+  e <- abs(j$h_est - j$h_ref)
+  q75 <- quantile(j$h_ref, 0.75, na.rm = TRUE)
+  early <- j$h_ref >= q75
+  list(
+    n_nodes = nrow(j),
+    mae_all = mean(e),
+    mae_early_q75 = mean(e[early]),
+    median_early_q75 = median(e[early])
+  )
+}
+
 run_chronos_modelselect <- function(phy, calib, clock_switch_thresh = PLOG_CLOCK_SWITCH_THRESH) {
   best_phiic <- list(tree = NULL, score = Inf, ploglik = NA_real_, model = NA_character_, lambda = NA_real_, nb_rate_cat = NA_integer_, selector_note = "phiic_default")
   best_model_phiic <- setNames(vector("list", length(CHRONOS_MODELS)), CHRONOS_MODELS)
@@ -326,6 +366,7 @@ run_chronos_modelselect <- function(phy, calib, clock_switch_thresh = PLOG_CLOCK
 # -------------------------
 # Main
 # -------------------------
+OUT_DIR <- file.path(OUT_BASE_DIR, OUT_PREFIX)
 dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
 TABLES_DIR <- file.path(OUT_DIR, "tables")
 TREES_DIR <- file.path(OUT_DIR, "trees")
@@ -336,18 +377,19 @@ for (d in c(TABLES_DIR, TREES_DIR, LOGS_DIR, CHECKPOINTS_DIR)) {
 }
 
 if (isTRUE(CLEAN_PREVIOUS_PREFIX_OUTPUTS)) {
-  old_files <- c(
-    Sys.glob(file.path(OUT_DIR, paste0("*", OUT_PREFIX, "*"))),
-    Sys.glob(file.path(TABLES_DIR, paste0("*", OUT_PREFIX, "*"))),
-    Sys.glob(file.path(TREES_DIR, paste0("*", OUT_PREFIX, "*"))),
-    Sys.glob(file.path(LOGS_DIR, paste0("*", OUT_PREFIX, "*"))),
-    Sys.glob(file.path(CHECKPOINTS_DIR, paste0("*", OUT_PREFIX, "*")))
-  )
-  old_files <- unique(old_files[file.exists(old_files)])
+  old_files <- list.files(OUT_DIR, recursive = TRUE, full.names = TRUE, all.files = FALSE, no.. = TRUE)
+  if (length(old_files)) {
+    old_files <- old_files[file.exists(old_files) & !dir.exists(old_files)]
+  }
   if (length(old_files)) {
     archive_dir <- file.path(OUT_DIR, "_archive", format(Sys.time(), "%Y%m%d_%H%M%S"))
     dir.create(archive_dir, showWarnings = FALSE, recursive = TRUE)
-    file.rename(old_files, file.path(archive_dir, basename(old_files)))
+    for (f in old_files) {
+      rel <- sub(paste0("^", OUT_DIR, "/?"), "", f)
+      dst <- file.path(archive_dir, rel)
+      dir.create(dirname(dst), recursive = TRUE, showWarnings = FALSE)
+      file.rename(f, dst)
+    }
   }
 }
 
@@ -386,8 +428,15 @@ cal_csv_file <- file.path(TABLES_DIR, paste0(safe_id, "_calibrations_used.csv"))
 summary_file <- file.path(TABLES_DIR, paste0("summary_", OUT_PREFIX, ".csv"))
 summary_sensitivity_file <- file.path(TABLES_DIR, paste0("summary_", OUT_PREFIX, "_sensitivity.csv"))
 model_fits_file <- file.path(TABLES_DIR, paste0("summary_", OUT_PREFIX, "_model_fits.csv"))
+interpretation_file <- file.path(TABLES_DIR, paste0("interpretation_", OUT_PREFIX, ".txt"))
 rds_file <- file.path(TABLES_DIR, paste0("results_", OUT_PREFIX, ".rds"))
 ckpt_file <- file.path(CHECKPOINTS_DIR, paste0("checkpoint_", OUT_PREFIX, ".rds"))
+
+# Remove previous model-tree duplicates so each run keeps one tree per model.
+old_model_trees <- Sys.glob(file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_model*.tre")))
+old_selected_trees <- Sys.glob(file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_clockthresh*.tre")))
+if (length(old_model_trees)) unlink(old_model_trees, force = TRUE)
+if (length(old_selected_trees)) unlink(old_selected_trees, force = TRUE)
 
 thresh_grid <- unique(as.numeric(CLOCK_SWITCH_SENSITIVITY))
 thresh_grid <- thresh_grid[is.finite(thresh_grid)]
@@ -396,8 +445,8 @@ if (!length(thresh_grid)) thresh_grid <- PLOG_CLOCK_SWITCH_THRESH
 fit_rows <- vector("list", length(thresh_grid))
 fit_list <- vector("list", length(thresh_grid))
 names(fit_list) <- paste0("clock_thresh_", thresh_grid)
-model_fit_rows <- list()
-model_fit_i <- 1L
+model_candidates <- list()
+model_candidate_i <- 1L
 
 for (i in seq_along(thresh_grid)) {
   thr <- thresh_grid[i]
@@ -409,28 +458,13 @@ for (i in seq_along(thresh_grid)) {
   for (mdl in CHRONOS_MODELS) {
     mfit <- fit_i$model_fits[[mdl]]
     mpl <- fit_i$model_ploglik_fits[[mdl]]
-    per_model_tree <- ""
-    if (!is.null(mfit) && inherits(mfit$tree, "phylo")) {
-      per_model_tree <- file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_model", mdl, "_clockthresh", thr, ".tre"))
-      write.tree(mfit$tree, per_model_tree)
-    }
-    model_fit_rows[[model_fit_i]] <- data.frame(
-      target_tree_file = TARGET_TREE_FILE,
-      target_tree_id = target_id,
-      plog_clock_switch_thresh = thr,
+    model_candidates[[model_candidate_i]] <- list(
+      threshold = thr,
       model = mdl,
-      model_selected = identical(fit_i$model, mdl),
-      best_phiic = if (is.null(mfit)) NA_real_ else mfit$score %||% NA_real_,
-      best_phiic_lambda = if (is.null(mfit)) NA_real_ else mfit$lambda %||% NA_real_,
-      best_phiic_nb_rate_cat = if (is.null(mfit)) NA_integer_ else mfit$nb_rate_cat %||% NA_integer_,
-      ploglik_at_best_phiic = if (is.null(mfit)) NA_real_ else mfit$ploglik %||% NA_real_,
-      best_ploglik = if (is.null(mpl)) NA_real_ else mpl$score %||% NA_real_,
-      best_ploglik_lambda = if (is.null(mpl)) NA_real_ else mpl$lambda %||% NA_real_,
-      best_ploglik_nb_rate_cat = if (is.null(mpl)) NA_integer_ else mpl$nb_rate_cat %||% NA_integer_,
-      dated_tree_file = per_model_tree,
-      stringsAsFactors = FALSE
+      fit = mfit,
+      fit_pl = mpl
     )
-    model_fit_i <- model_fit_i + 1L
+    model_candidate_i <- model_candidate_i + 1L
   }
 
   fit_list[[i]] <- fit_i
@@ -459,16 +493,78 @@ for (i in seq_along(thresh_grid)) {
 write.csv(cal_pairs, cal_csv_file, row.names = FALSE)
 summary_sensitivity <- do.call(rbind, fit_rows)
 write.csv(summary_sensitivity, summary_sensitivity_file, row.names = FALSE)
-if (length(model_fit_rows)) {
-  model_fits <- do.call(rbind, model_fit_rows)
-  write.csv(model_fits, model_fits_file, row.names = FALSE)
-} else {
-  model_fits <- data.frame()
+
+# Build one output tree per model (choose best PHIIC candidate across threshold runs).
+model_rows <- list()
+for (mdl in CHRONOS_MODELS) {
+  cand <- Filter(function(x) identical(x$model, mdl) && !is.null(x$fit) && inherits(x$fit$tree, "phylo"), model_candidates)
+  if (!length(cand)) next
+  scores <- sapply(cand, function(x) x$fit$score %||% Inf)
+  pick <- cand[[which.min(scores)]]
+  out_tree <- file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_model", mdl, ".tre"))
+  write.tree(pick$fit$tree, out_tree)
+  bt <- branching_tempo_error(target_tree, pick$fit$tree)
+  model_rows[[length(model_rows) + 1L]] <- data.frame(
+    target_tree_file = TARGET_TREE_FILE,
+    target_tree_id = target_id,
+    model = mdl,
+    source_threshold = pick$threshold,
+    best_phiic = pick$fit$score %||% NA_real_,
+    best_phiic_lambda = pick$fit$lambda %||% NA_real_,
+    best_phiic_nb_rate_cat = pick$fit$nb_rate_cat %||% NA_integer_,
+    ploglik_at_best_phiic = pick$fit$ploglik %||% NA_real_,
+    best_ploglik = if (is.null(pick$fit_pl)) NA_real_ else pick$fit_pl$score %||% NA_real_,
+    best_ploglik_lambda = if (is.null(pick$fit_pl)) NA_real_ else pick$fit_pl$lambda %||% NA_real_,
+    best_ploglik_nb_rate_cat = if (is.null(pick$fit_pl)) NA_integer_ else pick$fit_pl$nb_rate_cat %||% NA_integer_,
+    tempo_n_nodes = bt$n_nodes,
+    tempo_mae_all = bt$mae_all,
+    tempo_mae_early_q75 = bt$mae_early_q75,
+    tempo_median_early_q75 = bt$median_early_q75,
+    dated_tree_file = out_tree,
+    stringsAsFactors = FALSE
+  )
 }
+model_fits <- if (length(model_rows)) do.call(rbind, model_rows) else data.frame()
+write.csv(model_fits, model_fits_file, row.names = FALSE)
 
 pick_idx <- which(thresh_grid == PLOG_CLOCK_SWITCH_THRESH)[1]
 if (!is.finite(pick_idx)) pick_idx <- 1L
 summary_row <- summary_sensitivity[pick_idx, , drop = FALSE]
+
+fav_by_thr <- paste(
+  paste0("threshold ", summary_sensitivity$plog_clock_switch_thresh, ": ", summary_sensitivity$chronos_model),
+  collapse = "; "
+)
+fav_default <- summary_row$chronos_model[1]
+if (nrow(model_fits) > 0) {
+  tempo_pick <- model_fits[which.min(model_fits$tempo_mae_early_q75), , drop = FALSE]
+  tempo_best_model <- tempo_pick$model[1]
+  tempo_best_mae <- tempo_pick$tempo_mae_early_q75[1]
+} else {
+  tempo_best_model <- NA_character_
+  tempo_best_mae <- NA_real_
+}
+
+interp <- c(
+  paste0("Favored model by fit selector (default threshold ", PLOG_CLOCK_SWITCH_THRESH, "): ", fav_default),
+  paste0("Favored models by threshold: ", fav_by_thr),
+  paste0("Lowest branching-tempo error model (early_q75 MAE): ", tempo_best_model,
+         " (", format(tempo_best_mae, digits = 6), ")"),
+  if (!is.na(tempo_best_model) && identical(fav_default, tempo_best_model)) {
+    paste0("Interpretation: fit selector and branching-tempo diagnostic agree on model ", fav_default, ".")
+  } else {
+    paste0("Interpretation: favored model is ", fav_default,
+           " but lowest branching-tempo error is ", tempo_best_model,
+           ". Decide based on which criterion better captures the evolutionary history of your group.")
+  }
+)
+writeLines(interp, interpretation_file)
+
+summary_row$favored_models_by_threshold <- fav_by_thr
+summary_row$tempo_best_model <- tempo_best_model
+summary_row$tempo_best_mae_early_q75 <- tempo_best_mae
+summary_row$fit_vs_tempo_agree <- isTRUE(!is.na(tempo_best_model) && identical(fav_default, tempo_best_model))
+summary_row$interpretation_file <- interpretation_file
 write.csv(summary_row, summary_file, row.names = FALSE)
 
 saveRDS(list(summary = summary_row, summary_sensitivity = summary_sensitivity, model_fits = model_fits, fits = fit_list, calib = calib, cal_pairs = cal_pairs), rds_file)
@@ -482,4 +578,5 @@ msg("Selected default threshold row: ", summary_row$plog_clock_switch_thresh,
 msg("Saved: ", summary_file)
 msg("Saved: ", summary_sensitivity_file)
 msg("Saved: ", model_fits_file)
+msg("Saved: ", interpretation_file)
 msg("Saved: ", rds_file)

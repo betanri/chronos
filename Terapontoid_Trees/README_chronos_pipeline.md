@@ -122,10 +122,17 @@ These correspond to the current robust selector used in your simulation benchmar
 
 Configured by:
 
-- `OUT_DIR`
+- `OUT_BASE_DIR`
 - `OUT_PREFIX`
 
-Generated files (organized by subfolder):
+Generated files (in dedicated run folder):
+
+- `<OUT_BASE_DIR>/<OUT_PREFIX>/tables/...`
+- `<OUT_BASE_DIR>/<OUT_PREFIX>/trees/...`
+- `<OUT_BASE_DIR>/<OUT_PREFIX>/logs/...`
+- `<OUT_BASE_DIR>/<OUT_PREFIX>/checkpoints/...`
+
+Key files:
 
 - `tables/summary_<OUT_PREFIX>.csv` : default selected row (threshold 1)
 - `tables/summary_<OUT_PREFIX>_sensitivity.csv` : threshold 1 vs 2 side-by-side

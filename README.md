@@ -122,7 +122,9 @@ source("Run_chronos_pipeline.R")
 
 ## Outputs
 
-Configured by `OUT_DIR` and `OUT_PREFIX` in the script.
+Configured by `OUT_BASE_DIR` and `OUT_PREFIX` in the script.
+
+Outputs are written to a dedicated run folder: `<OUT_BASE_DIR>/<OUT_PREFIX>/`.
 
 Typical outputs:
 
