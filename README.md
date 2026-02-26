@@ -96,6 +96,35 @@ source("Run_chronos_pipeline.R")
 
 ---
 
+## Empirical model-sensitivity protocol (recommended)
+
+For empirical trees, run a separate model-sensitivity protocol and report it.
+Run the same tree with:
+
+- `PLOG_CLOCK_SWITCH_THRESH = 1` (current strict)
+- `PLOG_CLOCK_SWITCH_THRESH = 0` (less strict)
+- `PLOG_CLOCK_SWITCH_THRESH = 2` (more strict)
+
+Keep other settings fixed (`PLOG_NONCLOCK_SWITCH_THRESH`, `PLOG_TIE_EPS`, `LAMBDA_GRID`, `CHRONOS_MODELS`, `K_FIT_GRID`) and compare selected model/lambda and dated-tree stability.
+
+Minimal pattern:
+
+```r
+# strict
+PLOG_CLOCK_SWITCH_THRESH <- 1
+source("Run_chronos_pipeline.R")
+
+# less strict
+PLOG_CLOCK_SWITCH_THRESH <- 0
+source("Run_chronos_pipeline.R")
+
+# more strict
+PLOG_CLOCK_SWITCH_THRESH <- 2
+source("Run_chronos_pipeline.R")
+```
+
+---
+
 ## Outputs
 
 Configured by `OUT_DIR` and `OUT_PREFIX` in the script.
