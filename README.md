@@ -30,7 +30,7 @@ Given a target phylogram:
 
 - `Run_chronos_pipeline.R`
 
-(You can move/rename this path later; the script is general-purpose.)
+
 
 ---
 
