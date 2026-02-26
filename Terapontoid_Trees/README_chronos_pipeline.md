@@ -20,7 +20,8 @@ Given a target phylogram, the script:
    - from a manual CSV.
 3. Fits chronos across clock models and lambda values.
 4. Applies robust model selection with threshold sensitivity (`1` and `2`).
-5. Writes:
+5. Computes branching-tempo metrics (overall and early-tempo) to compare chronograms against the input phylogram branching pattern.
+6. Writes:
    - threshold-selected trees
    - one tree per model
    - fit tables
