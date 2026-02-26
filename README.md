@@ -128,10 +128,12 @@ Typical outputs:
 
 - `tables/summary_<prefix>.csv` (selected model/lambda and run summary)
 - `tables/summary_<prefix>_sensitivity.csv` (threshold 1 vs 2 in one table)
+- `tables/summary_<prefix>_model_fits.csv` (per-model fit table: clock/correlated/relaxed/discrete)
 - `tables/results_<prefix>.rds` (full fit/calibration objects)
 - `tables/<target_id>_calibrations_used.csv` (calibration pairs used)
 - `trees/<target_id>_chronos_dated_clockthresh1.tre`
 - `trees/<target_id>_chronos_dated_clockthresh2.tre`
+- `trees/<target_id>_chronos_dated_model<model>_clockthresh<thr>.tre` (all chronos models)
 - `logs/run_<prefix>.log` (run log)
 - `checkpoints/checkpoint_<prefix>.rds` (restart-friendly checkpoint)
 

@@ -129,10 +129,12 @@ Generated files (organized by subfolder):
 
 - `tables/summary_<OUT_PREFIX>.csv` : default selected row (threshold 1)
 - `tables/summary_<OUT_PREFIX>_sensitivity.csv` : threshold 1 vs 2 side-by-side
+- `tables/summary_<OUT_PREFIX>_model_fits.csv` : per-model fit summary (clock/correlated/relaxed/discrete)
 - `tables/results_<OUT_PREFIX>.rds` : full fit object + calibration object
 - `tables/<target_id>_calibrations_used.csv` : calibration pairs used
 - `trees/<target_id>_chronos_dated_clockthresh1.tre` : dated tree at threshold 1
 - `trees/<target_id>_chronos_dated_clockthresh2.tre` : dated tree at threshold 2
+- `trees/<target_id>_chronos_dated_model<model>_clockthresh<thr>.tre` : dated trees for each chronos model at each threshold
 - `logs/run_<OUT_PREFIX>.log` : run log
 - `checkpoints/checkpoint_<OUT_PREFIX>.rds` : lightweight checkpoint
 
