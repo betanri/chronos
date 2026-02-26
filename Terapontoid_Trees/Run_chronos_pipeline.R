@@ -55,6 +55,23 @@ OUT_DIR <- "chronos_empirical_out"
 OUT_PREFIX <- "terap_empirical"
 CLEAN_PREVIOUS_PREFIX_OUTPUTS <- TRUE
 
+# Optional diagnostic stress mode (empirical-safe).
+# Enable with env: DIAGNOSTIC_MODE=TRUE
+# Optional env overrides:
+#   DIAG_LAMBDA_GRID=0.01,0.1,1,10,100
+#   DIAG_N_RETRIES=5
+#   DIAG_OUT_SUFFIX=_diagflex
+DIAGNOSTIC_MODE <- tolower(Sys.getenv("DIAGNOSTIC_MODE", unset = "false")) %in% c("1", "true", "yes")
+if (DIAGNOSTIC_MODE) {
+  diag_lam <- strsplit(Sys.getenv("DIAG_LAMBDA_GRID", unset = "0.01,0.1,1,10,100"), ",")[[1]]
+  diag_lam <- as.numeric(trimws(diag_lam))
+  diag_lam <- diag_lam[is.finite(diag_lam) & diag_lam > 0]
+  if (length(diag_lam)) LAMBDA_GRID <- unique(diag_lam)
+  diag_retries <- as.integer(Sys.getenv("DIAG_N_RETRIES", unset = "5"))
+  if (is.finite(diag_retries) && diag_retries >= 1L) N_RETRIES <- diag_retries
+  OUT_PREFIX <- paste0(OUT_PREFIX, Sys.getenv("DIAG_OUT_SUFFIX", unset = "_diagflex"))
+}
+
 # -------------------------
 # Helpers
 # -------------------------
