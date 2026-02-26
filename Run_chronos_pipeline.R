@@ -370,11 +370,13 @@ run_chronos_modelselect <- function(phy, calib, clock_switch_thresh = PLOG_CLOCK
 # -------------------------
 OUT_DIR <- file.path(OUT_BASE_DIR, OUT_PREFIX)
 dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
-TABLES_DIR <- file.path(OUT_DIR, "tables")
-TREES_DIR <- file.path(OUT_DIR, "trees")
-LOGS_DIR <- file.path(OUT_DIR, "logs")
-CHECKPOINTS_DIR <- file.path(OUT_DIR, "checkpoints")
-for (d in c(TABLES_DIR, TREES_DIR, LOGS_DIR, CHECKPOINTS_DIR)) {
+MAIN_DIR <- file.path(OUT_DIR, "main_files")
+ALL_DIR <- file.path(OUT_DIR, "all_files")
+TABLES_DIR <- file.path(ALL_DIR, "tables")
+TREES_DIR <- file.path(ALL_DIR, "trees")
+LOGS_DIR <- file.path(ALL_DIR, "logs")
+CHECKPOINTS_DIR <- file.path(ALL_DIR, "checkpoints")
+for (d in c(MAIN_DIR, ALL_DIR, TABLES_DIR, TREES_DIR, LOGS_DIR, CHECKPOINTS_DIR)) {
   dir.create(d, showWarnings = FALSE, recursive = TRUE)
 }
 
@@ -609,28 +611,64 @@ if (nrow(model_fits) > 0) {
 }
 
 interp <- c(
-  paste0("Favored model by fit selector (default threshold ", PLOG_CLOCK_SWITCH_THRESH, "): ", fav_default),
-  paste0("Favored models by threshold: ", fav_by_thr),
-  paste0("Lowest branching-tempo error model (overall MAE): ", tempo_best_model_all,
-         " (", format(tempo_best_mae_all, digits = 6), ")"),
-  paste0("Lowest branching-tempo error model (early_q75 MAE): ", tempo_best_model_early,
-         " (", format(tempo_best_mae_early, digits = 6), ")"),
-  paste0("Lowest branching-tempo error model (composite MAE): ", tempo_best_model_comp,
-         " (", format(tempo_best_comp, digits = 6), ")"),
-  tempo_table_lines,
-  paste0("Near-tie tolerance used: abs=", TEMPO_EQ_ABS_TOL, ", rel=", TEMPO_EQ_REL_TOL),
-  paste0("Clock near-tie with tempo-best (overall+early): ", clock_near_tie),
-  paste0("Recommended model: ", recommended_model, " [", recommendation_reason, "]"),
-  if (!is.na(tempo_best_model_all) && !is.na(tempo_best_model_early) &&
-      identical(fav_default, tempo_best_model_all) &&
-      identical(fav_default, tempo_best_model_early)) {
-    paste0("Interpretation: fit selector, overall tempo metric, and early-tempo metric agree on model ", fav_default, ".")
+  paste0("The fit selector (default threshold = ", PLOG_CLOCK_SWITCH_THRESH, ") favors the ", fav_default, " model."),
+  if (nrow(summary_sensitivity) >= 2 &&
+      !is.na(summary_sensitivity$chronos_model[summary_sensitivity$plog_clock_switch_thresh == 1][1]) &&
+      !is.na(summary_sensitivity$chronos_model[summary_sensitivity$plog_clock_switch_thresh == 2][1]) &&
+      identical(summary_sensitivity$chronos_model[summary_sensitivity$plog_clock_switch_thresh == 1][1],
+                summary_sensitivity$chronos_model[summary_sensitivity$plog_clock_switch_thresh == 2][1])) {
+    paste0("Using threshold 1 and threshold 2, the favored model is still ",
+           summary_sensitivity$chronos_model[summary_sensitivity$plog_clock_switch_thresh == 1][1], ".")
   } else {
-    paste0("Interpretation: favored model is ", fav_default,
-           "; lowest overall tempo error is ", tempo_best_model_all,
-           "; lowest early-tempo error is ", tempo_best_model_early,
-           ". Decide based on which criterion better captures the evolutionary history of your group.")
+    paste0("Using threshold 1 and threshold 2, favored models are: ",
+           fav_by_thr, ".")
+  },
+  "",
+  paste0("The lowest branching-tempo error (MAE) is given by the ", tempo_best_model_comp, " model:"),
+  paste0(" - Overall MAE = ", format(tempo_best_mae_all, digits = 6)),
+  paste0(" - Early-tempo MAE (early_q75) = ", format(tempo_best_mae_early, digits = 6)),
+  paste0(" - Composite MAE = ", format(tempo_best_comp, digits = 6)),
+  "",
+  "Model comparison (lower is better):",
+  ""
+)
+if (nrow(model_fits) > 0) {
+  ord2 <- order(model_fits$tempo_rank_composite, model_fits$tempo_composite)
+  mf2 <- model_fits[ord2, ]
+  for (i in seq_len(nrow(mf2))) {
+    interp <- c(
+      interp,
+      paste0(tools::toTitleCase(mf2$model[i]), ":"),
+      paste0("mae_all = ", format(mf2$tempo_mae_all[i], digits = 7),
+             "; mae_early_q75 = ", format(mf2$tempo_mae_early_q75[i], digits = 7),
+             "; composite = ", format(mf2$tempo_composite[i], digits = 7),
+             "; ranks = ", mf2$tempo_rank_all[i], " / ", mf2$tempo_rank_early[i], " / ", mf2$tempo_rank_composite[i]),
+      if (i == 1) "" else paste0(
+        "difference vs best -> all: ", format(mf2$tempo_delta_all_to_best[i], digits = 6),
+        "; early_q75: ", format(mf2$tempo_delta_early_to_best[i], digits = 6)
+      ),
+      ""
+    )
   }
+}
+interp <- c(
+  interp,
+  paste0("Near-tie tolerance was abs = ", TEMPO_EQ_ABS_TOL, " and rel = ", TEMPO_EQ_REL_TOL, "."),
+  paste0("The clock model is considered a near-tie with the tempo-best model (overall + early): ", clock_near_tie, "."),
+  "",
+  paste0("Recommended model: ", recommended_model, " (",
+         if (recommendation_reason == "fit_selector_plus_parsimony_near_tie_with_tempo_best") {
+           "fit selector + parsimony, near-tie with tempo-best"
+         } else if (recommendation_reason == "fit_selector_differs_from_tempo_composite_best") {
+           "fit selector differs from tempo composite best"
+         } else {
+           "fit selector"
+         }, ")."),
+  "",
+  paste0("In short, ", tempo_best_model_comp,
+         " has the lowest tempo error, but the difference from clock is extremely small, and ",
+         fav_default, " is preferred under the selection criteria. ",
+         "However, the final choice should depend on which criterion better captures the evolutionary history of your group.")
 )
 writeLines(interp, interpretation_file)
 
@@ -653,6 +691,19 @@ write.csv(summary_row, summary_file, row.names = FALSE)
 
 saveRDS(list(summary = summary_row, summary_sensitivity = summary_sensitivity, model_fits = model_fits, fits = fit_list, calib = calib, cal_pairs = cal_pairs), rds_file)
 saveRDS(list(summary = summary_row, summary_sensitivity = summary_sensitivity, model_fits = model_fits), ckpt_file)
+
+# Copy key deliverables into a compact main_files folder.
+main_copy <- c(
+  cal_csv_file, summary_file, summary_sensitivity_file, model_fits_file, interpretation_file,
+  file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_clockthresh1.tre")),
+  file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_clockthresh2.tre")),
+  file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelclock.tre")),
+  file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelcorrelated.tre")),
+  file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelrelaxed.tre")),
+  file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modeldiscrete.tre"))
+)
+main_copy <- unique(main_copy[file.exists(main_copy)])
+for (f in main_copy) file.copy(f, file.path(MAIN_DIR, basename(f)), overwrite = TRUE)
 
 msg("Completed sensitivity grid: ", paste(thresh_grid, collapse = ","))
 msg("Selected default threshold row: ", summary_row$plog_clock_switch_thresh,

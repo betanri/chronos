@@ -103,34 +103,21 @@ Outputs are written to:
 
 - `<OUT_BASE_DIR>/<OUT_PREFIX>/`
 
-with subfolders:
+Output folder structure:
 
-- `tables/`
-- `trees/`
-- `logs/`
-- `checkpoints/`
-
-Main files:
-
-- `tables/summary_<OUT_PREFIX>.csv`
-  - fit-favored model (default threshold row)
-  - whether fit and tempo diagnostics agree
-- `tables/summary_<OUT_PREFIX>_sensitivity.csv`
-  - selected model for thresholds `1` and `2`
-- `tables/summary_<OUT_PREFIX>_model_fits.csv`
-  - per-model fit stats + branching-tempo metrics
-- `tables/interpretation_<OUT_PREFIX>.txt`
-  - plain-language conclusion:
-    - fit-favored model
-    - lowest overall tempo-error model
-    - lowest early-tempo-error model
-    - agreement/disagreement statement
-- `trees/<target_id>_chronos_dated_clockthresh1.tre`
-- `trees/<target_id>_chronos_dated_clockthresh2.tre`
-- `trees/<target_id>_chronos_dated_modelclock.tre`
-- `trees/<target_id>_chronos_dated_modelcorrelated.tre`
-- `trees/<target_id>_chronos_dated_modelrelaxed.tre`
-- `trees/<target_id>_chronos_dated_modeldiscrete.tre`
+1. `main_files/`
+   - compact deliverables for direct review:
+     - threshold-selected trees
+     - one tree per model
+     - fit summary tables
+     - branching-tempo metric table
+     - interpretation text
+2. `all_files/`
+   - full run contents:
+     - `tables/`
+     - `trees/`
+     - `logs/`
+     - `checkpoints/`
 
 ## Practical Reading Of Results
 
