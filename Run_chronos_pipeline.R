@@ -49,6 +49,8 @@ PLOG_NONCLOCK_SWITCH_THRESH <- 2
 PLOG_TIE_EPS <- 2
 # Empirical model-sensitivity protocol: run only strict and stricter thresholds.
 CLOCK_SWITCH_SENSITIVITY <- c(1, 2)
+TEMPO_EQ_ABS_TOL <- 0.001
+TEMPO_EQ_REL_TOL <- 0.01
 
 # Output
 OUT_BASE_DIR <- "chronos_empirical_out"
@@ -525,6 +527,14 @@ for (mdl in CHRONOS_MODELS) {
   )
 }
 model_fits <- if (length(model_rows)) do.call(rbind, model_rows) else data.frame()
+if (nrow(model_fits) > 0) {
+  model_fits$tempo_delta_all_to_best <- model_fits$tempo_mae_all - min(model_fits$tempo_mae_all, na.rm = TRUE)
+  model_fits$tempo_delta_early_to_best <- model_fits$tempo_mae_early_q75 - min(model_fits$tempo_mae_early_q75, na.rm = TRUE)
+  model_fits$tempo_rank_all <- rank(model_fits$tempo_mae_all, ties.method = "min")
+  model_fits$tempo_rank_early <- rank(model_fits$tempo_mae_early_q75, ties.method = "min")
+  model_fits$tempo_composite <- model_fits$tempo_mae_all + model_fits$tempo_mae_early_q75
+  model_fits$tempo_rank_composite <- rank(model_fits$tempo_composite, ties.method = "min")
+}
 write.csv(model_fits, model_fits_file, row.names = FALSE)
 
 pick_idx <- which(thresh_grid == PLOG_CLOCK_SWITCH_THRESH)[1]
@@ -543,11 +553,59 @@ if (nrow(model_fits) > 0) {
   tempo_pick_all <- model_fits[which.min(model_fits$tempo_mae_all), , drop = FALSE]
   tempo_best_model_all <- tempo_pick_all$model[1]
   tempo_best_mae_all <- tempo_pick_all$tempo_mae_all[1]
+  tempo_pick_comp <- model_fits[which.min(model_fits$tempo_composite), , drop = FALSE]
+  tempo_best_model_comp <- tempo_pick_comp$model[1]
+  tempo_best_comp <- tempo_pick_comp$tempo_composite[1]
 } else {
   tempo_best_model_early <- NA_character_
   tempo_best_mae_early <- NA_real_
   tempo_best_model_all <- NA_character_
   tempo_best_mae_all <- NA_real_
+  tempo_best_model_comp <- NA_character_
+  tempo_best_comp <- NA_real_
+}
+
+# Objective near-tie rule:
+# If clock is within tolerance of tempo-best in both overall and early metrics,
+# prefer clock (simpler model) when fit selector already favors clock.
+clock_row <- if (nrow(model_fits)) model_fits[model_fits$model == "clock", , drop = FALSE] else data.frame()
+clock_near_tie <- FALSE
+if (nrow(clock_row) == 1 && is.finite(tempo_best_mae_all) && is.finite(tempo_best_mae_early)) {
+  d_all <- clock_row$tempo_mae_all[1] - tempo_best_mae_all
+  d_early <- clock_row$tempo_mae_early_q75[1] - tempo_best_mae_early
+  tol_all <- max(TEMPO_EQ_ABS_TOL, TEMPO_EQ_REL_TOL * tempo_best_mae_all)
+  tol_early <- max(TEMPO_EQ_ABS_TOL, TEMPO_EQ_REL_TOL * tempo_best_mae_early)
+  clock_near_tie <- (d_all <= tol_all) && (d_early <= tol_early)
+}
+
+recommended_model <- fav_default
+recommendation_reason <- "fit_selector"
+if (identical(fav_default, "clock") && clock_near_tie) {
+  recommended_model <- "clock"
+  recommendation_reason <- "fit_selector_plus_parsimony_near_tie_with_tempo_best"
+} else if (!identical(fav_default, tempo_best_model_comp) && is.finite(tempo_best_comp)) {
+  recommendation_reason <- "fit_selector_differs_from_tempo_composite_best"
+}
+
+tempo_table_lines <- c("Per-model tempo comparison (lower is better):")
+if (nrow(model_fits) > 0) {
+  ord <- order(model_fits$tempo_rank_composite, model_fits$tempo_composite)
+  mf <- model_fits[ord, ]
+  for (i in seq_len(nrow(mf))) {
+    tempo_table_lines <- c(
+      tempo_table_lines,
+      paste0(
+        mf$model[i],
+        " | mae_all=", format(mf$tempo_mae_all[i], digits = 7),
+        " (d=", format(mf$tempo_delta_all_to_best[i], digits = 6), ")",
+        " | mae_early_q75=", format(mf$tempo_mae_early_q75[i], digits = 7),
+        " (d=", format(mf$tempo_delta_early_to_best[i], digits = 6), ")",
+        " | composite=", format(mf$tempo_composite[i], digits = 7),
+        " | ranks(all/early/comp)=",
+        mf$tempo_rank_all[i], "/", mf$tempo_rank_early[i], "/", mf$tempo_rank_composite[i]
+      )
+    )
+  }
 }
 
 interp <- c(
@@ -557,6 +615,12 @@ interp <- c(
          " (", format(tempo_best_mae_all, digits = 6), ")"),
   paste0("Lowest branching-tempo error model (early_q75 MAE): ", tempo_best_model_early,
          " (", format(tempo_best_mae_early, digits = 6), ")"),
+  paste0("Lowest branching-tempo error model (composite MAE): ", tempo_best_model_comp,
+         " (", format(tempo_best_comp, digits = 6), ")"),
+  tempo_table_lines,
+  paste0("Near-tie tolerance used: abs=", TEMPO_EQ_ABS_TOL, ", rel=", TEMPO_EQ_REL_TOL),
+  paste0("Clock near-tie with tempo-best (overall+early): ", clock_near_tie),
+  paste0("Recommended model: ", recommended_model, " [", recommendation_reason, "]"),
   if (!is.na(tempo_best_model_all) && !is.na(tempo_best_model_early) &&
       identical(fav_default, tempo_best_model_all) &&
       identical(fav_default, tempo_best_model_early)) {
@@ -575,8 +639,15 @@ summary_row$tempo_best_model_all <- tempo_best_model_all
 summary_row$tempo_best_mae_all <- tempo_best_mae_all
 summary_row$tempo_best_model_early_q75 <- tempo_best_model_early
 summary_row$tempo_best_mae_early_q75 <- tempo_best_mae_early
+summary_row$tempo_best_model_composite <- tempo_best_model_comp
+summary_row$tempo_best_composite <- tempo_best_comp
 summary_row$fit_vs_tempo_all_agree <- isTRUE(!is.na(tempo_best_model_all) && identical(fav_default, tempo_best_model_all))
 summary_row$fit_vs_tempo_early_agree <- isTRUE(!is.na(tempo_best_model_early) && identical(fav_default, tempo_best_model_early))
+summary_row$clock_near_tie_with_tempo_best <- clock_near_tie
+summary_row$tempo_eq_abs_tol <- TEMPO_EQ_ABS_TOL
+summary_row$tempo_eq_rel_tol <- TEMPO_EQ_REL_TOL
+summary_row$recommended_model <- recommended_model
+summary_row$recommendation_reason <- recommendation_reason
 summary_row$interpretation_file <- interpretation_file
 write.csv(summary_row, summary_file, row.names = FALSE)
 
