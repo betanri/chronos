@@ -112,6 +112,7 @@ source("Run_chronos_pipeline.R")
 - `PLOG_CLOCK_SWITCH_THRESH <- 1`
 - `PLOG_NONCLOCK_SWITCH_THRESH <- 2`
 - `PLOG_TIE_EPS <- 2`
+- `CLOCK_SWITCH_SENSITIVITY <- c(1, 2)`
 
 These correspond to the current robust selector used in your simulation benchmarks (`c1_n2_t2`).
 
@@ -124,13 +125,28 @@ Configured by:
 - `OUT_DIR`
 - `OUT_PREFIX`
 
-Generated files:
+Generated files (organized by subfolder):
 
-- `summary_<OUT_PREFIX>.csv` : selected model/lambda + calibration counts
-- `results_<OUT_PREFIX>.rds` : full fit object + calibration object
-- `checkpoint_<OUT_PREFIX>.rds` : lightweight checkpoint
-- `<target_id>_chronos_dated.tre` : dated output tree
-- `run_<OUT_PREFIX>.log` : run log
+- `tables/summary_<OUT_PREFIX>.csv` : default selected row (threshold 1)
+- `tables/summary_<OUT_PREFIX>_sensitivity.csv` : threshold 1 vs 2 side-by-side
+- `tables/results_<OUT_PREFIX>.rds` : full fit object + calibration object
+- `tables/<target_id>_calibrations_used.csv` : calibration pairs used
+- `trees/<target_id>_chronos_dated_clockthresh1.tre` : dated tree at threshold 1
+- `trees/<target_id>_chronos_dated_clockthresh2.tre` : dated tree at threshold 2
+- `logs/run_<OUT_PREFIX>.log` : run log
+- `checkpoints/checkpoint_<OUT_PREFIX>.rds` : lightweight checkpoint
+
+If `CLEAN_PREVIOUS_PREFIX_OUTPUTS <- TRUE`, prior outputs for the same prefix are moved to:
+- `_archive/<timestamp>/`
+
+## Empirical Model Sensitivity (recommended)
+
+For empirical analyses, report both threshold settings:
+
+- `PLOG_CLOCK_SWITCH_THRESH = 1` (default strict)
+- `PLOG_CLOCK_SWITCH_THRESH = 2` (stricter)
+
+Do not use threshold `0` in the default empirical workflow.
 
 ---
 
@@ -153,4 +169,3 @@ Generated files:
 - Script currently contains a hardcoded `setwd(...)`.  
   If sharing with others, replace with project-relative paths or remove `setwd`.
 - Keep tree/csv file names stable for reproducible outputs.
-

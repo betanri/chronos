@@ -47,12 +47,13 @@ N_RETRIES <- 2L
 PLOG_CLOCK_SWITCH_THRESH <- 1
 PLOG_NONCLOCK_SWITCH_THRESH <- 2
 PLOG_TIE_EPS <- 2
-# Empirical model-sensitivity protocol: run multiple strict->nonclock switch thresholds.
-CLOCK_SWITCH_SENSITIVITY <- c(1, 0, 2)
+# Empirical model-sensitivity protocol: run only strict and stricter thresholds.
+CLOCK_SWITCH_SENSITIVITY <- c(1, 2)
 
 # Output
 OUT_DIR <- "chronos_empirical_out"
 OUT_PREFIX <- "terap_empirical"
+CLEAN_PREVIOUS_PREFIX_OUTPUTS <- TRUE
 
 # -------------------------
 # Helpers
@@ -300,7 +301,31 @@ run_chronos_modelselect <- function(phy, calib, clock_switch_thresh = PLOG_CLOCK
 # Main
 # -------------------------
 dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
-log_file <- file.path(OUT_DIR, paste0("run_", OUT_PREFIX, ".log"))
+TABLES_DIR <- file.path(OUT_DIR, "tables")
+TREES_DIR <- file.path(OUT_DIR, "trees")
+LOGS_DIR <- file.path(OUT_DIR, "logs")
+CHECKPOINTS_DIR <- file.path(OUT_DIR, "checkpoints")
+for (d in c(TABLES_DIR, TREES_DIR, LOGS_DIR, CHECKPOINTS_DIR)) {
+  dir.create(d, showWarnings = FALSE, recursive = TRUE)
+}
+
+if (isTRUE(CLEAN_PREVIOUS_PREFIX_OUTPUTS)) {
+  old_files <- c(
+    Sys.glob(file.path(OUT_DIR, paste0("*", OUT_PREFIX, "*"))),
+    Sys.glob(file.path(TABLES_DIR, paste0("*", OUT_PREFIX, "*"))),
+    Sys.glob(file.path(TREES_DIR, paste0("*", OUT_PREFIX, "*"))),
+    Sys.glob(file.path(LOGS_DIR, paste0("*", OUT_PREFIX, "*"))),
+    Sys.glob(file.path(CHECKPOINTS_DIR, paste0("*", OUT_PREFIX, "*")))
+  )
+  old_files <- unique(old_files[file.exists(old_files)])
+  if (length(old_files)) {
+    archive_dir <- file.path(OUT_DIR, "_archive", format(Sys.time(), "%Y%m%d_%H%M%S"))
+    dir.create(archive_dir, showWarnings = FALSE, recursive = TRUE)
+    file.rename(old_files, file.path(archive_dir, basename(old_files)))
+  }
+}
+
+log_file <- file.path(LOGS_DIR, paste0("run_", OUT_PREFIX, ".log"))
 msg <- function(...) {
   s <- paste0(...)
   cat(s, "\n")
@@ -331,11 +356,11 @@ calib <- build_chronos_calib(target_tree, cal_pairs, ROOT_AGE)
 msg("Final calibration nodes on target tree: ", length(calib$node))
 
 safe_id <- gsub("[^A-Za-z0-9_]+", "_", target_id)
-cal_csv_file <- file.path(OUT_DIR, paste0(safe_id, "_calibrations_used.csv"))
-summary_file <- file.path(OUT_DIR, paste0("summary_", OUT_PREFIX, ".csv"))
-summary_sensitivity_file <- file.path(OUT_DIR, paste0("summary_", OUT_PREFIX, "_sensitivity.csv"))
-rds_file <- file.path(OUT_DIR, paste0("results_", OUT_PREFIX, ".rds"))
-ckpt_file <- file.path(OUT_DIR, paste0("checkpoint_", OUT_PREFIX, ".rds"))
+cal_csv_file <- file.path(TABLES_DIR, paste0(safe_id, "_calibrations_used.csv"))
+summary_file <- file.path(TABLES_DIR, paste0("summary_", OUT_PREFIX, ".csv"))
+summary_sensitivity_file <- file.path(TABLES_DIR, paste0("summary_", OUT_PREFIX, "_sensitivity.csv"))
+rds_file <- file.path(TABLES_DIR, paste0("results_", OUT_PREFIX, ".rds"))
+ckpt_file <- file.path(CHECKPOINTS_DIR, paste0("checkpoint_", OUT_PREFIX, ".rds"))
 
 thresh_grid <- unique(as.numeric(CLOCK_SWITCH_SENSITIVITY))
 thresh_grid <- thresh_grid[is.finite(thresh_grid)]
@@ -349,7 +374,7 @@ for (i in seq_along(thresh_grid)) {
   thr <- thresh_grid[i]
   fit_i <- run_chronos_modelselect(target_tree, calib, clock_switch_thresh = thr)
   if (is.null(fit_i$tree)) stop("chronos failed to return a dated tree at threshold=", thr)
-  dated_tree_file_i <- file.path(OUT_DIR, paste0(safe_id, "_chronos_dated_clockthresh", thr, ".tre"))
+  dated_tree_file_i <- file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_clockthresh", thr, ".tre"))
   write.tree(fit_i$tree, dated_tree_file_i)
   fit_list[[i]] <- fit_i
   fit_rows[[i]] <- data.frame(

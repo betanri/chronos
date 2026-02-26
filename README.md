@@ -101,24 +101,19 @@ source("Run_chronos_pipeline.R")
 For empirical trees, run a separate model-sensitivity protocol and report it.
 Run the same tree with:
 
-- `PLOG_CLOCK_SWITCH_THRESH = 1` (current strict)
-- `PLOG_CLOCK_SWITCH_THRESH = 0` (less strict)
-- `PLOG_CLOCK_SWITCH_THRESH = 2` (more strict)
+- `PLOG_CLOCK_SWITCH_THRESH = 1` (default strict)
+- `PLOG_CLOCK_SWITCH_THRESH = 2` (stricter)
 
 Keep other settings fixed (`PLOG_NONCLOCK_SWITCH_THRESH`, `PLOG_TIE_EPS`, `LAMBDA_GRID`, `CHRONOS_MODELS`, `K_FIT_GRID`) and compare selected model/lambda and dated-tree stability.
 
 Minimal pattern:
 
 ```r
-# strict
+# default strict
 PLOG_CLOCK_SWITCH_THRESH <- 1
 source("Run_chronos_pipeline.R")
 
-# less strict
-PLOG_CLOCK_SWITCH_THRESH <- 0
-source("Run_chronos_pipeline.R")
-
-# more strict
+# stricter
 PLOG_CLOCK_SWITCH_THRESH <- 2
 source("Run_chronos_pipeline.R")
 ```
@@ -131,11 +126,16 @@ Configured by `OUT_DIR` and `OUT_PREFIX` in the script.
 
 Typical outputs:
 
-- `summary_<prefix>.csv` (selected model/lambda and run summary)
-- `results_<prefix>.rds` (full fit/calibration objects)
-- `checkpoint_<prefix>.rds` (restart-friendly checkpoint)
-- `<target_id>_chronos_dated.tre` (dated output tree)
-- `run_<prefix>.log` (run log)
+- `tables/summary_<prefix>.csv` (selected model/lambda and run summary)
+- `tables/summary_<prefix>_sensitivity.csv` (threshold 1 vs 2 in one table)
+- `tables/results_<prefix>.rds` (full fit/calibration objects)
+- `tables/<target_id>_calibrations_used.csv` (calibration pairs used)
+- `trees/<target_id>_chronos_dated_clockthresh1.tre`
+- `trees/<target_id>_chronos_dated_clockthresh2.tre`
+- `logs/run_<prefix>.log` (run log)
+- `checkpoints/checkpoint_<prefix>.rds` (restart-friendly checkpoint)
+
+If `CLEAN_PREVIOUS_PREFIX_OUTPUTS <- TRUE`, old files for the same prefix are moved to `_archive/<timestamp>/`.
 
 ---
 
