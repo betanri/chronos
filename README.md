@@ -81,7 +81,6 @@ The script evaluates and reports both:
 - `PLOG_CLOCK_SWITCH_THRESH = 1` (default strict)
 - `PLOG_CLOCK_SWITCH_THRESH = 2` (stricter)
 
-It does **not** use threshold `0` in the default empirical workflow.
 
 ## Branching-Tempo Metric (Biology-Oriented Diagnostic)
 
