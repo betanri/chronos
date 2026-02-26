@@ -21,7 +21,7 @@ Given a target phylogram:
 - reads the tree (single-tree, multi-tree, or named-Newick)
 - builds chronos calibrations (congruify or manual)
 - fits chronos across model/lambda combinations
-- applies a robust model selector
+- applies a robust molecular clock model selector
 - writes dated tree + summary + checkpoint files
 
 ---
