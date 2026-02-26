@@ -1,178 +1,147 @@
-# chronos pipeline
+# Chronos Empirical Pipeline
 
-Simple, reproducible pipeline for divergence-time dating with `ape::chronos`.
+This pipeline dates a phylogram with `ape::chronos` and gives you:
 
-It supports two calibration workflows:
+- one fit-based selected chronogram
+- one chronogram per clock model (`clock`, `correlated`, `relaxed`, `discrete`)
+- an explicit comparison between:
+  - model-fit preference
+  - branching-tempo similarity to the original phylogram
 
-1. **Reference-tree workflow (congruification)**  
-   Build internal calibrations from a reference time tree.
+The goal is to help you decide which dated tree is most defensible for your biological question.
 
-2. **Manual workflow**  
-   Provide internal calibrations directly in a CSV file.
+## What The Pipeline Does
 
-The script is designed to be easy to edit and run on any dataset.
+Given a target phylogram, the script:
 
----
+1. Reads the tree (single tree, multi-tree, or named-Newick).
+2. Builds calibrations either:
+   - from a reference timetree (congruification), or
+   - from a manual CSV.
+3. Fits chronos across clock models and lambda values.
+4. Applies robust model selection with threshold sensitivity (`1` and `2`).
+5. Writes:
+   - threshold-selected trees
+   - one tree per model
+   - fit tables
+   - branching-tempo metric table
+   - a plain-language interpretation text file.
 
-## What this does
-
-Given a target phylogram:
-
-- reads the tree (single-tree, multi-tree, or named-Newick)
-- builds chronos calibrations (congruify or manual)
-- fits chronos across model/lambda combinations
-- applies a robust molecular clock model selector
-- writes dated tree + summary + checkpoint files
-
----
-
-## Main script
+## Main Script
 
 - `Run_chronos_pipeline.R`
 
-
-
----
-
-## Requirements
-
-R packages:
-
-- `ape`
-- `geiger`
-- `phytools`
-
-Install once:
+## Required R Packages
 
 ```r
 install.packages(c("ape", "geiger", "phytools"))
 ```
 
----
+## Inputs
 
-## Input options
+### Option A: Reference-tree calibrations (congruification)
 
-### Option A: Congruification (reference time tree)
+Set:
 
-Set in script:
-
-- `USE_CONGRUIF <- TRUE`
-- `TARGET_TREE_FILE <- "path/to/target_phylogram.tre"`
-- `REFERENCE_TIME_TREE <- "path/to/reference_time_tree.tre"`
-
-The script will:
-- make reference ultrametric if needed
-- run congruification
-- convert resulting constraints into chronos calibrations
-
----
+```r
+USE_CONGRUIF <- TRUE
+TARGET_TREE_FILE <- "path/to/target_phylogram.tre"
+REFERENCE_TIME_TREE <- "path/to/reference_time_tree.tre"
+```
 
 ### Option B: Manual calibrations (CSV)
 
-Set in script:
+Set:
 
-- `USE_CONGRUIF <- FALSE`
-- `TARGET_TREE_FILE <- "path/to/target_phylogram.tre"`
-- `MANUAL_CAL_CSV <- "path/to/manual_calibrations.csv"`
+```r
+USE_CONGRUIF <- FALSE
+TARGET_TREE_FILE <- "path/to/target_phylogram.tre"
+MANUAL_CAL_CSV <- "path/to/manual_calibrations.csv"
+```
 
-CSV required columns:
+Manual CSV must contain:
 
 - `taxonA`
 - `taxonB`
 - `age_min`
 - `age_max`
 
-Each row defines one calibration interval on MRCA(taxonA, taxonB).
-
----
-
-## Run
-
-In R:
+## How To Run
 
 ```r
+setwd("/Users/ricardobetancur/Desktop/Proxy_Misplaced/chronosPL/Terapontoid_Trees")
 source("Run_chronos_pipeline.R")
 ```
 
----
+## Model-Fit Sensitivity
 
-## Empirical model-sensitivity protocol (recommended)
-
-For empirical trees, run a separate model-sensitivity protocol and report it.
-Run the same tree with:
+The script evaluates and reports both:
 
 - `PLOG_CLOCK_SWITCH_THRESH = 1` (default strict)
 - `PLOG_CLOCK_SWITCH_THRESH = 2` (stricter)
 
-Keep other settings fixed (`PLOG_NONCLOCK_SWITCH_THRESH`, `PLOG_TIE_EPS`, `LAMBDA_GRID`, `CHRONOS_MODELS`, `K_FIT_GRID`) and compare selected model/lambda and dated-tree stability.
+It does **not** use threshold `0` in the default empirical workflow.
 
-Minimal pattern:
+## Branching-Tempo Metric (Biology-Oriented Diagnostic)
 
-```r
-# default strict
-PLOG_CLOCK_SWITCH_THRESH <- 1
-source("Run_chronos_pipeline.R")
+This metric compares each chronogram to the original phylogram in terms of branching tempo.
 
-# stricter
-PLOG_CLOCK_SWITCH_THRESH <- 2
-source("Run_chronos_pipeline.R")
-```
+How it works:
 
----
+1. Match internal nodes by clade identity (same descendant tip set).
+2. Normalize node heights to `[0,1]` (root deep, tips shallow).
+3. Compute:
+   - `tempo_mae_all` (all internal nodes)
+   - `tempo_mae_early_q75` (deep/early nodes only, top quartile)
+   - `tempo_median_early_q75`
 
-## Outputs
+Lower values mean the chronogram preserves the phylogram’s branching-tempo pattern better.
 
-Configured by `OUT_BASE_DIR` and `OUT_PREFIX` in the script.
+## Outputs (Dedicated Run Folder)
 
-Outputs are written to a dedicated run folder: `<OUT_BASE_DIR>/<OUT_PREFIX>/`.
+Outputs are written to:
 
-Typical outputs:
+- `<OUT_BASE_DIR>/<OUT_PREFIX>/`
 
-- `tables/summary_<prefix>.csv` (selected model/lambda and run summary)
-- `tables/summary_<prefix>_sensitivity.csv` (threshold 1 vs 2 in one table)
-- `tables/summary_<prefix>_model_fits.csv` (per-model fit table + branching-tempo metrics)
-- `tables/interpretation_<prefix>.txt` (fit-vs-tempo interpretation)
-- `tables/results_<prefix>.rds` (full fit/calibration objects)
-- `tables/<target_id>_calibrations_used.csv` (calibration pairs used)
+with subfolders:
+
+- `tables/`
+- `trees/`
+- `logs/`
+- `checkpoints/`
+
+Main files:
+
+- `tables/summary_<OUT_PREFIX>.csv`
+  - fit-favored model (default threshold row)
+  - whether fit and tempo diagnostics agree
+- `tables/summary_<OUT_PREFIX>_sensitivity.csv`
+  - selected model for thresholds `1` and `2`
+- `tables/summary_<OUT_PREFIX>_model_fits.csv`
+  - per-model fit stats + branching-tempo metrics
+- `tables/interpretation_<OUT_PREFIX>.txt`
+  - plain-language conclusion:
+    - fit-favored model
+    - lowest overall tempo-error model
+    - lowest early-tempo-error model
+    - agreement/disagreement statement
 - `trees/<target_id>_chronos_dated_clockthresh1.tre`
 - `trees/<target_id>_chronos_dated_clockthresh2.tre`
 - `trees/<target_id>_chronos_dated_modelclock.tre`
 - `trees/<target_id>_chronos_dated_modelcorrelated.tre`
 - `trees/<target_id>_chronos_dated_modelrelaxed.tre`
 - `trees/<target_id>_chronos_dated_modeldiscrete.tre`
-- `logs/run_<prefix>.log` (run log)
-- `checkpoints/checkpoint_<prefix>.rds` (restart-friendly checkpoint)
 
-If `CLEAN_PREVIOUS_PREFIX_OUTPUTS <- TRUE`, old files for the same prefix are moved to `_archive/<timestamp>/`.
+## Practical Reading Of Results
 
-Branching-tempo diagnostic:
-- Nodes are matched by clade identity.
-- Internal-node heights are normalized to `[0,1]`.
-- Reported metrics include:
-  - `tempo_mae_all`
-  - `tempo_mae_early_q75`
-  - `tempo_median_early_q75`
-- Final interpretation reports:
-  - fit-favored model
-  - lowest overall tempo-error model
-  - lowest early-tempo-error model
-  - whether they agree
+- If fit and tempo both favor the same model: strong convergence.
+- If fit favors one model but tempo favors another: report both explicitly and choose based on your biological objective (clock-model fit vs preservation of branching-tempo pattern).
 
----
+## Common Issues
 
-## Key settings you can change
-
-- `LAMBDA_GRID`
-- `CHRONOS_MODELS`
-- `K_FIT_GRID` (for discrete model)
-- robust selector thresholds:
-  - `PLOG_CLOCK_SWITCH_THRESH`
-  - `PLOG_NONCLOCK_SWITCH_THRESH`
-  - `PLOG_TIE_EPS`
-
----
-
-## Notes
-
-- The current default selector corresponds to the robust configuration used in prior benchmark tuning.
-- Selection is based on model-fit quantities from the target phylogram (not true ages), so it is suitable for empirical datasets.
+1. Many calibration pairs but few calibration nodes:
+   - some taxa are missing in target tree, or multiple pairs collapse to same MRCA.
+2. Congruify warning about non-ultrametric reference:
+   - the script handles this internally by ultrametricizing the reference.
+3. No usable calibrations:
+   - check exact label matching between tree and calibrations.
