@@ -130,16 +130,33 @@ Typical outputs:
 
 - `tables/summary_<prefix>.csv` (selected model/lambda and run summary)
 - `tables/summary_<prefix>_sensitivity.csv` (threshold 1 vs 2 in one table)
-- `tables/summary_<prefix>_model_fits.csv` (per-model fit table: clock/correlated/relaxed/discrete)
+- `tables/summary_<prefix>_model_fits.csv` (per-model fit table + branching-tempo metrics)
+- `tables/interpretation_<prefix>.txt` (fit-vs-tempo interpretation)
 - `tables/results_<prefix>.rds` (full fit/calibration objects)
 - `tables/<target_id>_calibrations_used.csv` (calibration pairs used)
 - `trees/<target_id>_chronos_dated_clockthresh1.tre`
 - `trees/<target_id>_chronos_dated_clockthresh2.tre`
-- `trees/<target_id>_chronos_dated_model<model>_clockthresh<thr>.tre` (all chronos models)
+- `trees/<target_id>_chronos_dated_modelclock.tre`
+- `trees/<target_id>_chronos_dated_modelcorrelated.tre`
+- `trees/<target_id>_chronos_dated_modelrelaxed.tre`
+- `trees/<target_id>_chronos_dated_modeldiscrete.tre`
 - `logs/run_<prefix>.log` (run log)
 - `checkpoints/checkpoint_<prefix>.rds` (restart-friendly checkpoint)
 
 If `CLEAN_PREVIOUS_PREFIX_OUTPUTS <- TRUE`, old files for the same prefix are moved to `_archive/<timestamp>/`.
+
+Branching-tempo diagnostic:
+- Nodes are matched by clade identity.
+- Internal-node heights are normalized to `[0,1]`.
+- Reported metrics include:
+  - `tempo_mae_all`
+  - `tempo_mae_early_q75`
+  - `tempo_median_early_q75`
+- Final interpretation reports:
+  - fit-favored model
+  - lowest overall tempo-error model
+  - lowest early-tempo-error model
+  - whether they agree
 
 ---
 

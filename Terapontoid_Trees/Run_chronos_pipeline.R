@@ -537,33 +537,46 @@ fav_by_thr <- paste(
 )
 fav_default <- summary_row$chronos_model[1]
 if (nrow(model_fits) > 0) {
-  tempo_pick <- model_fits[which.min(model_fits$tempo_mae_early_q75), , drop = FALSE]
-  tempo_best_model <- tempo_pick$model[1]
-  tempo_best_mae <- tempo_pick$tempo_mae_early_q75[1]
+  tempo_pick_early <- model_fits[which.min(model_fits$tempo_mae_early_q75), , drop = FALSE]
+  tempo_best_model_early <- tempo_pick_early$model[1]
+  tempo_best_mae_early <- tempo_pick_early$tempo_mae_early_q75[1]
+  tempo_pick_all <- model_fits[which.min(model_fits$tempo_mae_all), , drop = FALSE]
+  tempo_best_model_all <- tempo_pick_all$model[1]
+  tempo_best_mae_all <- tempo_pick_all$tempo_mae_all[1]
 } else {
-  tempo_best_model <- NA_character_
-  tempo_best_mae <- NA_real_
+  tempo_best_model_early <- NA_character_
+  tempo_best_mae_early <- NA_real_
+  tempo_best_model_all <- NA_character_
+  tempo_best_mae_all <- NA_real_
 }
 
 interp <- c(
   paste0("Favored model by fit selector (default threshold ", PLOG_CLOCK_SWITCH_THRESH, "): ", fav_default),
   paste0("Favored models by threshold: ", fav_by_thr),
-  paste0("Lowest branching-tempo error model (early_q75 MAE): ", tempo_best_model,
-         " (", format(tempo_best_mae, digits = 6), ")"),
-  if (!is.na(tempo_best_model) && identical(fav_default, tempo_best_model)) {
-    paste0("Interpretation: fit selector and branching-tempo diagnostic agree on model ", fav_default, ".")
+  paste0("Lowest branching-tempo error model (overall MAE): ", tempo_best_model_all,
+         " (", format(tempo_best_mae_all, digits = 6), ")"),
+  paste0("Lowest branching-tempo error model (early_q75 MAE): ", tempo_best_model_early,
+         " (", format(tempo_best_mae_early, digits = 6), ")"),
+  if (!is.na(tempo_best_model_all) && !is.na(tempo_best_model_early) &&
+      identical(fav_default, tempo_best_model_all) &&
+      identical(fav_default, tempo_best_model_early)) {
+    paste0("Interpretation: fit selector, overall tempo metric, and early-tempo metric agree on model ", fav_default, ".")
   } else {
     paste0("Interpretation: favored model is ", fav_default,
-           " but lowest branching-tempo error is ", tempo_best_model,
+           "; lowest overall tempo error is ", tempo_best_model_all,
+           "; lowest early-tempo error is ", tempo_best_model_early,
            ". Decide based on which criterion better captures the evolutionary history of your group.")
   }
 )
 writeLines(interp, interpretation_file)
 
 summary_row$favored_models_by_threshold <- fav_by_thr
-summary_row$tempo_best_model <- tempo_best_model
-summary_row$tempo_best_mae_early_q75 <- tempo_best_mae
-summary_row$fit_vs_tempo_agree <- isTRUE(!is.na(tempo_best_model) && identical(fav_default, tempo_best_model))
+summary_row$tempo_best_model_all <- tempo_best_model_all
+summary_row$tempo_best_mae_all <- tempo_best_mae_all
+summary_row$tempo_best_model_early_q75 <- tempo_best_model_early
+summary_row$tempo_best_mae_early_q75 <- tempo_best_mae_early
+summary_row$fit_vs_tempo_all_agree <- isTRUE(!is.na(tempo_best_model_all) && identical(fav_default, tempo_best_model_all))
+summary_row$fit_vs_tempo_early_agree <- isTRUE(!is.na(tempo_best_model_early) && identical(fav_default, tempo_best_model_early))
 summary_row$interpretation_file <- interpretation_file
 write.csv(summary_row, summary_file, row.names = FALSE)
 

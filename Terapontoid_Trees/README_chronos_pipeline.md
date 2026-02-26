@@ -22,7 +22,7 @@ Main script:
    - clock -> non-clock switch threshold
    - correlated vs relaxed switch threshold
    - tie handling toward correlated
-5. Writes dated tree + summary + checkpoint outputs.
+5. Writes dated trees, model-fit tables, branching-tempo diagnostics, interpretation text, and checkpoint outputs.
 
 ---
 
@@ -136,12 +136,16 @@ Key files:
 
 - `tables/summary_<OUT_PREFIX>.csv` : default selected row (threshold 1)
 - `tables/summary_<OUT_PREFIX>_sensitivity.csv` : threshold 1 vs 2 side-by-side
-- `tables/summary_<OUT_PREFIX>_model_fits.csv` : per-model fit summary (clock/correlated/relaxed/discrete)
+- `tables/summary_<OUT_PREFIX>_model_fits.csv` : per-model fit summary plus branching-tempo metrics
+- `tables/interpretation_<OUT_PREFIX>.txt` : explicit fit-vs-tempo conclusion
 - `tables/results_<OUT_PREFIX>.rds` : full fit object + calibration object
 - `tables/<target_id>_calibrations_used.csv` : calibration pairs used
 - `trees/<target_id>_chronos_dated_clockthresh1.tre` : dated tree at threshold 1
 - `trees/<target_id>_chronos_dated_clockthresh2.tre` : dated tree at threshold 2
-- `trees/<target_id>_chronos_dated_model<model>_clockthresh<thr>.tre` : dated trees for each chronos model at each threshold
+- `trees/<target_id>_chronos_dated_modelclock.tre` : one tree for clock model
+- `trees/<target_id>_chronos_dated_modelcorrelated.tre` : one tree for correlated model
+- `trees/<target_id>_chronos_dated_modelrelaxed.tre` : one tree for relaxed model
+- `trees/<target_id>_chronos_dated_modeldiscrete.tre` : one tree for discrete model
 - `logs/run_<OUT_PREFIX>.log` : run log
 - `checkpoints/checkpoint_<OUT_PREFIX>.rds` : lightweight checkpoint
 
@@ -156,6 +160,26 @@ For empirical analyses, report both threshold settings:
 - `PLOG_CLOCK_SWITCH_THRESH = 2` (stricter)
 
 Do not use threshold `0` in the default empirical workflow.
+
+## Branching-Tempo Diagnostic (new)
+
+In addition to model fit (PHIIC/ploglik), the pipeline computes a branching-tempo diagnostic against the input phylogram for each model tree.
+
+Node matching:
+- Internal nodes are matched by clade identity (descendant tip set).
+
+Tempo variables:
+- Node heights are normalized to `[0,1]` using max root-to-tip depth.
+
+Reported metrics in `summary_<OUT_PREFIX>_model_fits.csv`:
+- `tempo_mae_all` : mean absolute error across all matched internal-node normalized heights.
+- `tempo_mae_early_q75` : MAE restricted to early/deep nodes (top quartile of phylogram node heights).
+- `tempo_median_early_q75` : median absolute error for the same early/deep node subset.
+
+Interpretation logic:
+- Fit-favored model comes from selector thresholds (1 and 2).
+- Tempo-favored model is the model with lowest `tempo_mae_all` and/or `tempo_mae_early_q75`.
+- `interpretation_<OUT_PREFIX>.txt` reports both and states whether they agree.
 
 ---
 
