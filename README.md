@@ -28,7 +28,7 @@ Given a target phylogram:
 
 ## Main script
 
-- `Terapontoid_Trees/Run_chronos_pipeline.R`
+- `Run_chronos_pipeline.R`
 
 (You can move/rename this path later; the script is general-purpose.)
 
@@ -91,7 +91,7 @@ Each row defines one calibration interval on MRCA(taxonA, taxonB).
 In R:
 
 ```r
-source("Terapontoid_Trees/Run_chronos_pipeline.R")
+source("Run_chronos_pipeline.R")
 ```
 
 ---
