@@ -37,17 +37,7 @@ How to read:
 - This panel is intentionally unannotated so burst-clade arrows can be added manually.
 - The best two metric trees retain burst placement more similarly to the input phylogram than the worst two.
 
-## Figure B: Node-height distribution (tempo shape)
-
-![Branching tempo ECDF](figures/branching_tempo_node_height_ecdf.png)
-
-How to read:
-
-- Black = input phylogram node-height shape.
-- Curves closer to black preserve tempo shape better.
-- In this example, discrete/clock are closest; correlated/relaxed deviate more.
-
-## Figure C: Metric comparison by model
+## Figure B: Metric comparison by model
 
 ![Branching tempo metric bars](figures/branching_tempo_metric_bars.png)
 
