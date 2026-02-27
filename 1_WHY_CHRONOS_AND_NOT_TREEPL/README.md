@@ -10,6 +10,25 @@ I compared **treePL** and **chronos** under the same topology, calibration, and 
 - treePL tuning: smooth in `{0.1, 1, 10}`
 - chronos tuning: model in `{clock, correlated, relaxed, discrete}`, lambda in `{0.1, 1, 10}`, robust selector
 
+## Simulation design (how tests were generated)
+
+- Birth-death simulation used `lambda = 1` and `mu in {0, 0.5, 0.8}`.
+- Trees were first simulated with target extant richness `N_FULL = 1500` tips.
+- Then each tree was randomly pruned to `N_PRUNED = 150` tips for dating/evaluation.
+- True node ages came from this 150-tip pruned true tree.
+- Phylograms were generated from true-time branch durations by clock-specific rate transforms:
+  - `strict`: all branch rates = 1.
+  - `independent`: branch rates `exp(N(0, heterotachy))`.
+  - `discrete`: 3-rate categories `exp(c(-1,0,1) * 2 * heterotachy)` with probs `(0.25, 0.5, 0.25)`.
+  - `autocorrelated`: child rate = parent rate `* exp(N(0, heterotachy))`, starting at root rate = 1.
+- Heterotachy levels were `H in {0.05, 0.25}`.
+- Calibration strategy was root-only and identical for both methods:
+  - root minimum age = root maximum age = true root age.
+- Hyperparameter/model search in this 720-run benchmark:
+  - treePL: smooth grid `{0.1, 1, 10}`.
+  - chronos: model grid `{clock, correlated, relaxed, discrete}`, lambda grid `{0.1, 1, 10}`.
+  - robust chronos selector settings: `PLOG_CLOCK_SWITCH_THRESH=1`, `PLOG_NONCLOCK_SWITCH_THRESH=2`, `PLOG_TIE_EPS=2`, `K_FIT_GRID={2,3,5,10}`.
+
 ## Headline result
 
 - Mean MAE: treePL **1.8113** vs chronos **0.4966**
