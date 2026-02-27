@@ -2,7 +2,6 @@
 
 This pipeline dates a phylogram with `ape::chronos` and gives you:
 
-- one fit-based selected chronogram
 - one chronogram per clock model (`clock`, `correlated`, `relaxed`, `discrete`)
 - an explicit comparison between:
   - model-fit preference
