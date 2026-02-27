@@ -2,7 +2,7 @@
 
 ## Benchmark Evidence
 
-- **Why Chronos and not treePL?**: [../1_WHY_CHRONOS_AND_NOT_TREEPL/README.md](../1_WHY_CHRONOS_AND_NOT_TREEPL/README.md)
+- [**Why Chronos and not treePL?**](../1_WHY_CHRONOS_AND_NOT_TREEPL/README.md)
 
 
 This pipeline dates a phylogram with `ape::chronos` and gives you:
