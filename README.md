@@ -1,5 +1,10 @@
 # Chronos -- Custom Dating Tree Pipeline
 
+## Benchmark Evidence
+
+- **Why Chronos and not treePL?**: [docs/why_chronos_vs_treepl/README.md](docs/why_chronos_vs_treepl/README.md)
+
+
 This pipeline dates a phylogram with `ape::chronos` and gives you:
 
 - one chronogram per clock model (`clock`, `correlated`, `relaxed`, `discrete`)
