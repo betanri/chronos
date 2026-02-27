@@ -50,7 +50,9 @@ This means chronos is much better on age accuracy in this benchmark, but its sel
 
 ![MAE by true clock](figures/fig2_mae_by_true_clock.png)
 
-![Chronos win-rate heatmap](figures/fig3_chronos_winrate_heatmap.png)
+![MAE heatmaps by heterotachy and extinction (same scale)](figures/fig3_mae_heatmap_mu_heterotachy.png)
+
+![Heterotachy x extinction interaction plot](figures/fig4_interaction_heterotachy_extinction.png)
 
 ## Practical interpretation
 
