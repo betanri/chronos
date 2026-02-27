@@ -34,8 +34,8 @@ Interpretation for this example: the two lowest-metric trees (discrete, clock) p
 How to read:
 
 - All trees are normalized to comparable root-to-tip scale.
-- This panel is intentionally unannotated so burst-clade arrows can be added manually.
 - The best two metric trees retain burst placement more similarly to the input phylogram than the worst two.
+- Arrows show clades with diversification pulses in phylogram that are only preserved in best two chronograms (discrete, clock).
 
 ## Figure B: Metric comparison by model
 
