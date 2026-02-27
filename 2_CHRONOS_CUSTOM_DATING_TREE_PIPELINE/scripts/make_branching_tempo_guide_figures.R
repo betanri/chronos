@@ -35,109 +35,32 @@ get_norm_height <- function(tr) {
   (m - d) / m
 }
 
-clade_key <- function(tips) paste(sort(tips), collapse = "|")
-
-internal_node_keys <- function(tr) {
-  n <- Ntip(tr)
-  nodes <- (n + 1):(n + tr$Nnode)
-  keys <- sapply(nodes, function(nd) clade_key(extract.clade(tr, nd)$tip.label))
-  names(keys) <- as.character(nodes)
-  keys
-}
-
-# Pick two focal "burst" clades from the phylogram:
-# early internal nodes with large descendant sets, forcing non-nested clades.
-pick_focal_nodes <- function(tr) {
-  n <- Ntip(tr)
-  h <- get_norm_height(tr)
-  nodes <- (n + 1):(n + tr$Nnode)
-  early <- nodes[h[nodes] >= quantile(h[nodes], 0.75, na.rm = TRUE)]
-
-  tips_list <- lapply(early, function(nd) sort(extract.clade(tr, nd)$tip.label))
-  sizes <- sapply(tips_list, length)
-  ord <- order(sizes, decreasing = TRUE)
-
-  selected <- integer(0)
-  selected_tips <- list()
-
-  for (k in ord) {
-    cand_nd <- early[k]
-    cand_tips <- tips_list[[k]]
-    nested <- FALSE
-    if (length(selected_tips) > 0) {
-      for (st in selected_tips) {
-        if (all(cand_tips %in% st) || all(st %in% cand_tips)) {
-          nested <- TRUE
-          break
-        }
-      }
-    }
-    if (!nested) {
-      selected <- c(selected, cand_nd)
-      selected_tips[[length(selected_tips) + 1]] <- cand_tips
-    }
-    if (length(selected) == 2) break
-  }
-
-  if (length(selected) < 2) {
-    selected <- early[ord[1:2]]
-  }
-  selected
-}
-
+# 1) Clean tree panel with best two and worst two (no arrows/dots; manual annotation ready)
 p_phy <- normalize_tree(phy)
 p_mods <- lapply(mods, normalize_tree)
-focal_phy_nodes <- pick_focal_nodes(p_phy)
-focal_keys <- sapply(focal_phy_nodes, function(nd) clade_key(extract.clade(p_phy, nd)$tip.label))
 
-find_nodes_by_keys <- function(tr, keys) {
-  kmap <- internal_node_keys(tr)
-  idx <- match(keys, unname(kmap))
-  as.integer(names(kmap)[idx])
-}
-
-plot_one <- function(tr, title_txt, focal_keys) {
-  plot(tr, show.tip.label = FALSE, no.margin = TRUE, main = title_txt, cex.main = 0.95)
-  lp <- get("last_plot.phylo", envir = .PlotPhyloEnv)
-  n <- Ntip(tr)
-  nodes <- find_nodes_by_keys(tr, focal_keys)
-  nodes <- nodes[is.finite(nodes)]
-  if (length(nodes) == 0) return(invisible(NULL))
-
-  dy <- 0.07 * diff(lp$y.lim)
-  for (i in seq_along(nodes)) {
-    nd <- nodes[i]
-    xt <- lp$xx[nd]
-    yt <- lp$yy[nd - n]
-    y0 <- yt + ifelse(i %% 2 == 1, dy, -dy)
-    x0 <- max(xt - 0.18, lp$x.lim[1] + 0.02)
-    arrows(x0, y0, xt - 0.01, yt, length = 0.12, col = "#d7301f", lwd = 2.3)
-  }
-}
-
-# 1) Tree panel with best two and worst two
 order_models <- c(best2, worst2)
 order_models <- unique(order_models)
 if (!all(c("discrete", "clock", "correlated", "relaxed") %in% order_models)) {
   order_models <- c("discrete", "clock", "correlated", "relaxed")
 }
 
-png(file.path(out_fig, "branching_tempo_tree_panel_arrows_v2.png"), width = 2500, height = 1450, res = 180)
+png(file.path(out_fig, "branching_tempo_tree_panel_clean_v3.png"), width = 3000, height = 1700, res = 220)
 layout(matrix(c(1,2,3,4,5,6), nrow = 2, byrow = TRUE))
-par(mar = c(1,1,4,1), oma = c(0,0,1,0))
-plot_one(p_phy, "input phylogram (normalized)", focal_keys)
+par(mar = c(1.5,1,5,1), oma = c(0.5,0.5,1.5,0.5), xpd = NA)
+plot(p_phy, show.tip.label = FALSE, no.margin = TRUE, main = "Input phylogram (normalized)", cex.main = 0.95)
 for (m in order_models) {
   rec <- tempo[tempo$model == m, ][1, ]
-  ttl <- sprintf("%s | all %.3f | early %.3f", m, rec$tempo_mae_all, rec$tempo_mae_early_q75)
-  plot_one(p_mods[[m]], ttl, focal_keys)
+  ttl <- sprintf("%s | overall=%.3f | early=%.3f", m, rec$tempo_mae_all, rec$tempo_mae_early_q75)
+  plot(p_mods[[m]], show.tip.label = FALSE, no.margin = TRUE, main = ttl, cex.main = 0.95)
 }
 plot.new()
 legend("center",
-       legend = c("Red arrows: two focal burst clades used for visual comparison",
-                  sprintf("Best two by composite: %s, %s", best2[1], best2[2]),
-                  sprintf("Worst two by composite: %s, %s", worst2[1], worst2[2])),
+       legend = c("Best two by composite: discrete, clock",
+                  "Worst two by composite: relaxed, correlated",
+                  "This panel is intentionally unannotated so burst-clade arrows can be added manually."),
        bty = "n", cex = 1.0)
-mtext("Figure A: Tree-shape comparison (best vs worst)", side = 3, outer = TRUE, line = -0.5, cex = 1.5, font = 2)
+mtext("Figure A: Tree-shape comparison (best vs worst)", side = 3, outer = TRUE, line = 0.2, cex = 1.45, font = 2)
 dev.off()
 
 # 2) Node-height ECDF vs phylogram

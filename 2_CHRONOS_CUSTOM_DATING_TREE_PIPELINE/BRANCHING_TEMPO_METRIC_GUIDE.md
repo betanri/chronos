@@ -29,12 +29,12 @@ Interpretation for this example: the two lowest-metric trees (discrete, clock) p
 
 ## Figure A: Tree-shape comparison (best vs worst)
 
-![Branching tempo tree panel](figures/branching_tempo_tree_panel_arrows_v2.png)
+![Branching tempo tree panel](figures/branching_tempo_tree_panel_clean_v3.png)
 
 How to read:
 
 - All trees are normalized to comparable root-to-tip scale.
-- Red arrows point to the same two focal burst clades in every tree for direct visual comparison.
+- This panel is intentionally unannotated so burst-clade arrows can be added manually.
 - The best two metric trees retain burst placement more similarly to the input phylogram than the worst two.
 
 ## Figure B: Node-height distribution (tempo shape)
