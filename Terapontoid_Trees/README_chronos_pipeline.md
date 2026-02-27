@@ -70,23 +70,30 @@ Manual CSV must contain:
 
 ## Optional Subset Mode For Large Trees
 
-Use this when full-tree fitting is too slow.
+Use this when full-tree model-grid fitting is too slow.
 
 ```r
 USE_SUBSET <- TRUE
 SUBSET_N <- 400L
 SUBSET_EXTREME_FRAC <- 0.05
 SUBSET_SEED <- 1L
+SUBSET_TUNE_ON_SUBSET_ONLY <- TRUE
 ```
 
 Subset strategy:
 
-1. Always keep all taxa used in calibration pairs (`taxonA`, `taxonB`).
+1. Always keep all taxa used in calibration pairs (`taxonA`, `taxonB`), so calibration MRCAs are retained.
 2. Add root-to-tip extremes from the phylogram (shortest and longest paths).
 3. Fill remaining tips using diversified topological spread (ladderized traversal).
 4. If needed, fill final slots at random from remaining tips.
 
 If calibration taxa alone exceed `SUBSET_N`, the script stops and asks you to increase `SUBSET_N`.
+
+How this is used in the pipeline:
+
+1. The subset tree is used only to tune model/lambda/K and threshold sensitivity.
+2. The selected settings are then applied to the full tree for final dated outputs.
+3. This avoids running the full model grid on the full tree while still producing a full-tree chronogram.
 
 ## How To Run
 

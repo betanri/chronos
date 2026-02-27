@@ -58,6 +58,9 @@ USE_SUBSET <- FALSE
 SUBSET_N <- 400L
 SUBSET_EXTREME_FRAC <- 0.05
 SUBSET_SEED <- 1L
+# If TRUE, subset is used only for tuning model/lambda; final selected settings are
+# then applied to the full tree for final dated outputs.
+SUBSET_TUNE_ON_SUBSET_ONLY <- TRUE
 
 # Output
 OUT_BASE_DIR <- "chronos_empirical_out"
@@ -414,6 +417,26 @@ run_chronos_modelselect <- function(phy, calib, clock_switch_thresh = PLOG_CLOCK
   robust
 }
 
+run_chronos_fixed <- function(phy, calib, model, lam, nb_rate_cat = NA_integer_) {
+  best <- list(tree = NULL, score = Inf, ploglik = NA_real_)
+  ctrl <- chronos.control()
+  if (identical(model, "clock")) {
+    model <- "clock"
+  }
+  if (identical(model, "discrete") && is.finite(nb_rate_cat)) {
+    ctrl$nb.rate.cat <- as.integer(nb_rate_cat)
+  }
+  for (k in seq_len(N_RETRIES)) {
+    tr <- try(chronos(phy, lambda = lam, model = model, calibration = calib, quiet = TRUE, control = ctrl), silent = TRUE)
+    if (inherits(tr, "try-error")) next
+    sc <- fit_score_chronos(tr)
+    pl <- attr(tr, "ploglik")
+    if (!is.finite(pl)) pl <- NA_real_
+    if (is.finite(sc) && sc < best$score) best <- list(tree = tr, score = sc, ploglik = pl)
+  }
+  best
+}
+
 # -------------------------
 # Main
 # -------------------------
@@ -473,6 +496,9 @@ if (USE_CONGRUIF) {
   msg("Calibration mode: manual_csv | pairs=", nrow(cal_pairs))
 }
 
+target_tree_full <- target_tree
+cal_pairs_full <- cal_pairs
+
 subset_tip_file <- NA_character_
 subset_mode_applied <- FALSE
 n_tips_original <- Ntip(target_tree)
@@ -497,7 +523,8 @@ if (isTRUE(USE_SUBSET) && Ntip(target_tree) > SUBSET_N) {
   msg("Subset mode: applied | original tips=", n_tips_original,
       " | retained tips=", Ntip(target_tree),
       " | calibration pairs retained=", nrow(cal_pairs),
-      " | subset tip file=", subset_tip_file)
+      " | subset tip file=", subset_tip_file,
+      " | subset_tune_only=", SUBSET_TUNE_ON_SUBSET_ONLY)
 } else {
   msg("Subset mode: not applied | USE_SUBSET=", USE_SUBSET,
       " | original tips=", n_tips_original,
@@ -506,9 +533,16 @@ if (isTRUE(USE_SUBSET) && Ntip(target_tree) > SUBSET_N) {
 
 calib <- build_chronos_calib(target_tree, cal_pairs, ROOT_AGE)
 msg("Final calibration nodes on target tree: ", length(calib$node))
+calib_full <- if (subset_mode_applied && isTRUE(SUBSET_TUNE_ON_SUBSET_ONLY)) build_chronos_calib(target_tree_full, cal_pairs_full, ROOT_AGE) else NULL
+if (!is.null(calib_full)) {
+  msg("Full-tree calibration nodes (for final run after subset tuning): ", length(calib_full$node))
+}
 
 safe_id <- gsub("[^A-Za-z0-9_]+", "_", target_id)
 cal_csv_file <- file.path(TABLES_DIR, paste0(safe_id, "_calibrations_used.csv"))
+cal_csv_file_full <- if (subset_mode_applied && isTRUE(SUBSET_TUNE_ON_SUBSET_ONLY)) {
+  file.path(TABLES_DIR, paste0(safe_id, "_calibrations_used_full_tree.csv"))
+} else NA_character_
 summary_file <- file.path(TABLES_DIR, paste0("summary_", OUT_PREFIX, ".csv"))
 summary_sensitivity_file <- file.path(TABLES_DIR, paste0("summary_", OUT_PREFIX, "_sensitivity.csv"))
 model_fits_file <- file.path(TABLES_DIR, paste0("summary_", OUT_PREFIX, "_model_fits.csv"))
@@ -557,7 +591,10 @@ for (i in seq_along(thresh_grid)) {
     target_tree_id = target_id,
     n_tips = Ntip(target_tree),
     n_tips_original = n_tips_original,
+    n_tips_tuning = Ntip(target_tree),
+    n_tips_full = Ntip(target_tree_full),
     subset_mode = subset_mode_applied,
+    subset_tune_on_subset_only = if (subset_mode_applied) SUBSET_TUNE_ON_SUBSET_ONLY else FALSE,
     subset_n = if (subset_mode_applied) SUBSET_N else NA_integer_,
     subset_extreme_frac = if (subset_mode_applied) SUBSET_EXTREME_FRAC else NA_real_,
     subset_seed = if (subset_mode_applied) SUBSET_SEED else NA_integer_,
@@ -566,6 +603,7 @@ for (i in seq_along(thresh_grid)) {
     reference_tree_file = if (USE_CONGRUIF) REFERENCE_TIME_TREE else "",
     root_age = ROOT_AGE,
     n_calib_pairs_input = nrow(cal_pairs),
+    n_calib_pairs_full = nrow(cal_pairs_full),
     n_calib_nodes_final = length(calib$node),
     plog_clock_switch_thresh = thr,
     chronos_model = fit_i$model %||% "",
@@ -581,7 +619,34 @@ for (i in seq_along(thresh_grid)) {
 }
 
 write.csv(cal_pairs, cal_csv_file, row.names = FALSE)
+if (!is.na(cal_csv_file_full)) {
+  write.csv(cal_pairs_full, cal_csv_file_full, row.names = FALSE)
+}
 summary_sensitivity <- do.call(rbind, fit_rows)
+
+# In subset-tuning mode, keep tuning tree outputs but run final selected settings on full tree.
+summary_sensitivity$dated_tree_file_tuning <- summary_sensitivity$dated_tree_file
+summary_sensitivity$dated_tree_file_full <- NA_character_
+if (subset_mode_applied && isTRUE(SUBSET_TUNE_ON_SUBSET_ONLY)) {
+  msg("Subset tuning mode: running final full-tree chronos with selected settings per threshold.")
+  for (i in seq_len(nrow(summary_sensitivity))) {
+    thr <- summary_sensitivity$plog_clock_switch_thresh[i]
+    mdl <- as.character(summary_sensitivity$chronos_model[i])
+    lam <- as.numeric(summary_sensitivity$chronos_lambda[i])
+    kcat <- as.numeric(summary_sensitivity$chronos_nb_rate_cat[i])
+    if (!is.finite(kcat)) kcat <- NA_integer_
+    fit_full <- run_chronos_fixed(target_tree_full, calib_full, mdl, lam, kcat)
+    if (is.null(fit_full$tree)) {
+      warning("Full-tree chronos failed for threshold=", thr, " model=", mdl, " lambda=", lam, call. = FALSE)
+      next
+    }
+    full_file <- file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_fulltree_clockthresh", thr, ".tre"))
+    write.tree(fit_full$tree, full_file)
+    summary_sensitivity$dated_tree_file_full[i] <- full_file
+    summary_sensitivity$dated_tree_file[i] <- full_file
+  }
+}
+
 write.csv(summary_sensitivity, summary_sensitivity_file, row.names = FALSE)
 
 # Build one output tree per model (choose best PHIIC candidate across threshold runs).
@@ -697,6 +762,12 @@ if (nrow(model_fits) > 0) {
 }
 
 interp <- c(
+  if (subset_mode_applied && isTRUE(SUBSET_TUNE_ON_SUBSET_ONLY)) {
+    paste0("Subset tuning mode was used: tuning on ", Ntip(target_tree), " tips; final dated tree(s) generated on full tree with ", n_tips_original, " tips.")
+  } else {
+    paste0("Full-tree mode was used: all tuning and final dating ran on ", Ntip(target_tree), " tips.")
+  },
+  "",
   paste0("The fit selector (default threshold = ", PLOG_CLOCK_SWITCH_THRESH, ") favors the ", fav_default, " model."),
   if (nrow(summary_sensitivity) >= 2 &&
       !is.na(summary_sensitivity$chronos_model[summary_sensitivity$plog_clock_switch_thresh == 1][1]) &&
@@ -778,7 +849,18 @@ summary_row$subset_mode <- subset_mode_applied
 summary_row$subset_n <- if (subset_mode_applied) SUBSET_N else NA_integer_
 summary_row$subset_extreme_frac <- if (subset_mode_applied) SUBSET_EXTREME_FRAC else NA_real_
 summary_row$subset_seed <- if (subset_mode_applied) SUBSET_SEED else NA_integer_
+summary_row$subset_tune_on_subset_only <- if (subset_mode_applied) SUBSET_TUNE_ON_SUBSET_ONLY else FALSE
 summary_row$subset_tip_file <- subset_tip_file
+summary_row$cal_csv_file_tuning <- cal_csv_file
+summary_row$cal_csv_file_full <- cal_csv_file_full
+summary_row$n_tips_tuning <- Ntip(target_tree)
+summary_row$n_tips_final <- if (subset_mode_applied && isTRUE(SUBSET_TUNE_ON_SUBSET_ONLY)) Ntip(target_tree_full) else Ntip(target_tree)
+summary_row$dated_tree_file_tuning <- if ("dated_tree_file_tuning" %in% names(summary_sensitivity)) {
+  summary_sensitivity$dated_tree_file_tuning[pick_idx]
+} else summary_row$dated_tree_file
+summary_row$dated_tree_file_full <- if ("dated_tree_file_full" %in% names(summary_sensitivity)) {
+  summary_sensitivity$dated_tree_file_full[pick_idx]
+} else NA_character_
 write.csv(summary_row, summary_file, row.names = FALSE)
 
 saveRDS(list(summary = summary_row, summary_sensitivity = summary_sensitivity, model_fits = model_fits, fits = fit_list, calib = calib, cal_pairs = cal_pairs), rds_file)
@@ -786,9 +868,11 @@ saveRDS(list(summary = summary_row, summary_sensitivity = summary_sensitivity, m
 
 # Copy key deliverables into a compact main_files folder.
 main_copy <- c(
-  cal_csv_file, summary_file, summary_sensitivity_file, model_fits_file, interpretation_file, subset_tip_file,
+  cal_csv_file, cal_csv_file_full, summary_file, summary_sensitivity_file, model_fits_file, interpretation_file, subset_tip_file,
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_clockthresh1.tre")),
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_clockthresh2.tre")),
+  file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_fulltree_clockthresh1.tre")),
+  file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_fulltree_clockthresh2.tre")),
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelclock.tre")),
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelcorrelated.tre")),
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelrelaxed.tre")),
