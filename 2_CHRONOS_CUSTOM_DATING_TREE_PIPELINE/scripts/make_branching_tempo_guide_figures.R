@@ -45,21 +45,21 @@ if (!all(c("discrete", "clock", "correlated", "relaxed") %in% order_models)) {
   order_models <- c("discrete", "clock", "correlated", "relaxed")
 }
 
-png(file.path(out_fig, "branching_tempo_tree_panel_clean_v3.png"), width = 3400, height = 1900, res = 220)
+png(file.path(out_fig, "branching_tempo_tree_panel_clean_v3.png"), width = 4200, height = 2500, res = 220)
 layout(matrix(c(1,2,3,4,5,6), nrow = 2, byrow = TRUE))
-par(mar = c(1.2, 1.0, 2.8, 1.0), oma = c(0.2, 0.2, 0.2, 0.2), xpd = NA)
-plot(p_phy, show.tip.label = FALSE, no.margin = TRUE, main = "Input phylogram", cex.main = 0.78)
+par(mar = c(1.2, 1.0, 4.2, 1.0), oma = c(0.2, 0.2, 0.2, 0.2), xpd = NA)
+plot(p_phy, show.tip.label = FALSE, no.margin = TRUE, main = "Input phylogram", cex.main = 1.55)
 for (m in order_models) {
   rec <- tempo[tempo$model == m, ][1, ]
   ttl <- sprintf("%s | all %.3f | early %.3f", m, rec$tempo_mae_all, rec$tempo_mae_early_q75)
-  plot(p_mods[[m]], show.tip.label = FALSE, no.margin = TRUE, main = ttl, cex.main = 0.78)
+  plot(p_mods[[m]], show.tip.label = FALSE, no.margin = TRUE, main = ttl, cex.main = 1.55)
 }
 plot.new()
 legend("center",
        legend = c("Best two by composite: discrete, clock",
                   "Worst two by composite: relaxed, correlated",
                   "Manual annotation ready (no auto arrows/dots)."),
-       bty = "n", cex = 0.95)
+       bty = "n", cex = 1.9)
 dev.off()
 
 # 2) Node-height ECDF vs phylogram
