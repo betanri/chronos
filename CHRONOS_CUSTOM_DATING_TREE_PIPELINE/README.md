@@ -1,4 +1,9 @@
-# Chronos Custom Pipeline
+# Chronos -- Custom Dating Tree Pipeline
+
+## Benchmark Evidence
+
+- **Why Chronos and not treePL?**: [../WHY_CHRONOS_AND_NOT_TREEPL/README.md](../WHY_CHRONOS_AND_NOT_TREEPL/README.md)
+
 
 This pipeline dates a phylogram with `ape::chronos` and gives you:
 
@@ -29,7 +34,7 @@ Given a target phylogram, the script:
 
 ## Main Script
 
-- `Run_chronos_pipeline.R`
+- `CHRONOS_CUSTOM_DATING_TREE_PIPELINE/Run_chronos_pipeline.R`
 
 ## Required R Packages
 
@@ -96,7 +101,7 @@ How this is used in the pipeline:
 ## How To Run
 
 ```r
-setwd("path/to/project")
+setwd("path/to/project/CHRONOS_CUSTOM_DATING_TREE_PIPELINE")
 source("Run_chronos_pipeline.R")
 ```
 
