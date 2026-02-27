@@ -47,26 +47,24 @@ if (!all(c("discrete", "clock", "correlated", "relaxed") %in% order_models)) {
 
 draw_tree_panel <- function() {
   layout(matrix(c(1,2,3,4,5,6), nrow = 2, byrow = TRUE))
-  par(mar = c(1.0, 1.0, 4.5, 1.0), oma = c(0.2, 0.2, 2.5, 0.2), xpd = NA)
+  par(mar = c(1.0, 1.0, 3.0, 1.0), oma = c(0.2, 0.2, 0.2, 0.2), xpd = NA)
   plot(p_phy, show.tip.label = FALSE, no.margin = TRUE, main = "")
-  title(main = "Input phylogram", cex.main = 3.2, line = 1.2)
+  title(main = "Input phylogram", cex.main = 1.4, line = 1.0)
   for (m in order_models) {
     rec <- tempo[tempo$model == m, ][1, ]
     ttl <- sprintf("%s | all %.3f | early %.3f", m, rec$tempo_mae_all, rec$tempo_mae_early_q75)
     plot(p_mods[[m]], show.tip.label = FALSE, no.margin = TRUE, main = "")
-    title(main = ttl, cex.main = 3.2, line = 1.2)
+    title(main = ttl, cex.main = 1.4, line = 1.0)
   }
   plot.new()
   legend("center",
          legend = c("Best two by composite: discrete, clock",
                     "Worst two by composite: relaxed, correlated",
                     "Manual annotation ready (no auto arrows/dots)."),
-         bty = "n", cex = 3.0)
-  mtext("Figure A: Tree-shape comparison (best vs worst)",
-        side = 3, outer = TRUE, line = 0.2, cex = 3.0, font = 2)
+         bty = "n", cex = 1.35)
 }
 
-png(file.path(out_fig, "branching_tempo_tree_panel_clean_v3.png"), width = 3200, height = 1900, res = 220)
+png(file.path(out_fig, "branching_tempo_tree_panel_clean_v3.png"), width = 3400, height = 2100, res = 220)
 draw_tree_panel()
 dev.off()
 
