@@ -129,7 +129,7 @@ Lower values mean the chronogram preserves the phylogram’s branching-tempo pat
 
 Outputs are written to:
 
-- `<OUT_BASE_DIR>/<OUT_PREFIX>/`
+- `<OUT_BASE_DIR>/`
 
 Output folder structure:
 
@@ -147,6 +147,11 @@ Output folder structure:
      - `trees/`
      - `logs/`
      - `checkpoints/`
+
+Notes:
+
+- `OUT_BASE_DIR` defaults to `CHRONOS_OUT`.
+- `OUT_PREFIX` is used for file names (summary, interpretation, logs), not as a subfolder name.
 
 ## Practical Reading Of Results
 

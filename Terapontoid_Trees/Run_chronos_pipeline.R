@@ -63,7 +63,7 @@ SUBSET_SEED <- 1L
 SUBSET_TUNE_ON_SUBSET_ONLY <- TRUE
 
 # Output
-OUT_BASE_DIR <- "chronos_empirical_out"
+OUT_BASE_DIR <- "CHRONOS_OUT"
 OUT_PREFIX <- "terap_empirical"
 CLEAN_PREVIOUS_PREFIX_OUTPUTS <- TRUE
 
@@ -440,7 +440,7 @@ run_chronos_fixed <- function(phy, calib, model, lam, nb_rate_cat = NA_integer_)
 # -------------------------
 # Main
 # -------------------------
-OUT_DIR <- file.path(OUT_BASE_DIR, OUT_PREFIX)
+OUT_DIR <- OUT_BASE_DIR
 dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
 MAIN_DIR <- file.path(OUT_DIR, "main_files")
 ALL_DIR <- file.path(OUT_DIR, "all_files")
