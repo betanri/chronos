@@ -73,6 +73,8 @@ This means chronos is much better on age accuracy in this benchmark, but its sel
 
 ![Heterotachy x extinction interaction plot](figures/fig4_interaction_heterotachy_extinction.png)
 
+![Representative trees (compact; mu=0.8, H=0.25)](figures/fig5_representative_trees_compact.png)
+
 ## Practical interpretation
 
 - For these conditions, chronos is the better default for dating accuracy and stability.
