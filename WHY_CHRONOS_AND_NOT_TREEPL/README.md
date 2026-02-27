@@ -1,7 +1,7 @@
 # Why Chronos and not treePL?
 
 `treePL` is very widely used in divergence-time studies, so the default expectation is often to use it first.
-This benchmark tests whether that default is justified under the simulation conditions we care about.
+Outside of computationally demanding Bayesian approaches (often not feasible for very large trees), this benchmark tests whether that default is justified under the simulation conditions we care about.
 
 We compared **treePL** and **chronos** under the same topology, calibration, and replicate grid.
 
