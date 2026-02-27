@@ -869,10 +869,6 @@ saveRDS(list(summary = summary_row, summary_sensitivity = summary_sensitivity, m
 # Copy key deliverables into a compact main_files folder.
 main_copy <- c(
   cal_csv_file, cal_csv_file_full, summary_file, summary_sensitivity_file, model_fits_file, interpretation_file, subset_tip_file,
-  file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_clockthresh1.tre")),
-  file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_clockthresh2.tre")),
-  file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_fulltree_clockthresh1.tre")),
-  file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_fulltree_clockthresh2.tre")),
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelclock.tre")),
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelcorrelated.tre")),
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelrelaxed.tre")),

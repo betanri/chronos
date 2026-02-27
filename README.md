@@ -23,7 +23,6 @@ Given a target phylogram, the script:
 5. Applies robust model selection with threshold sensitivity (`1` and `2`).
 6. Computes branching-tempo metrics (overall and early-tempo) to compare chronograms against the input phylogram branching pattern.
 7. Writes:
-   - threshold-selected trees
    - one tree per model
    - fit tables
    - branching-tempo metric table
@@ -135,7 +134,6 @@ Output folder structure:
 
 1. `main_files/`
    - compact deliverables for direct review:
-     - threshold-selected trees
      - one tree per model
      - fit summary tables
      - branching-tempo metric table
@@ -147,6 +145,7 @@ Output folder structure:
      - `trees/`
      - `logs/`
      - `checkpoints/`
+   - includes threshold-selected trees (`clockthresh*`, and `fulltree_clockthresh*` when subset-tuning mode is enabled)
 
 Notes:
 
