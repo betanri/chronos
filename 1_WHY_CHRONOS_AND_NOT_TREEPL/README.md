@@ -13,6 +13,7 @@ I compared **treePL** and **chronos** under the same topology, calibration, and 
 
 - Birth-death simulation used `lambda = 1` and `mu in {0, 0.5, 0.8}`.
 - Trees were first simulated with target extant richness `N_FULL = 1500` tips.
+- For `mu > 0`, extinct lineages were not retained in the dated dataset: extinct branches were dropped by extant-tip sampling before final pruning.
 - Then each tree was randomly pruned to `N_PRUNED = 150` tips for dating/evaluation.
 - True node ages came from this 150-tip pruned true tree.
 - Phylograms were generated from true-time branch durations by clock-specific rate transforms:
