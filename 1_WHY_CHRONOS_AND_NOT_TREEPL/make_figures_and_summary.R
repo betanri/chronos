@@ -141,6 +141,7 @@ y_all <- c(comb$treePL, comb$chronos)
 y_all <- y_all[is.finite(y_all)]
 ylim_shared <- range(y_all, na.rm = TRUE)
 if (diff(ylim_shared) == 0) ylim_shared <- ylim_shared + c(-0.01, 0.01)
+y_ticks <- pretty(ylim_shared, n = 6)
 
 plot_method <- function(method_col, method_name) {
   sub <- comb[, c("mu", "heterotachy", method_col)]
@@ -148,9 +149,11 @@ plot_method <- function(method_col, method_name) {
   plot(NA,
        xlim = range(mu_vals),
        ylim = ylim_shared,
+       yaxt = "n",
        xlab = expression(mu),
        ylab = "Mean MAE",
-       main = paste0(method_name, " interaction: heterotachy x extinction"))
+       main = paste0(method_name, " interaction"))
+  axis(2, at = y_ticks, labels = y_ticks)
   for (i in seq_along(het_vals)) {
     h <- het_vals[i]
     tmp <- sub[sub$heterotachy == h, ]
@@ -172,6 +175,13 @@ plot_method <- function(method_col, method_name) {
 }
 
 png("figures/fig4_interaction_heterotachy_extinction.png", width = 1700, height = 850, res = 150)
+par(mfrow = c(1, 2), mar = c(5, 5, 4, 2))
+plot_method("treePL", "treePL")
+plot_method("chronos", "chronos")
+dev.off()
+
+# Cache-busting duplicate with same content for GitHub web view refreshes
+png("figures/fig4_interaction_heterotachy_extinction_same_scale.png", width = 1700, height = 850, res = 150)
 par(mfrow = c(1, 2), mar = c(5, 5, 4, 2))
 plot_method("treePL", "treePL")
 plot_method("chronos", "chronos")
