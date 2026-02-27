@@ -115,6 +115,10 @@ The script evaluates and reports both:
 
 ## Branching-Tempo Metric (Biology-Oriented Diagnostic)
 
+Detailed walkthrough (example-based):
+
+- [Branching-Tempo Metric Guide](BRANCHING_TEMPO_METRIC_GUIDE.md)
+
 This metric compares each chronogram to the original phylogram in terms of branching tempo.
 
 How it works:
