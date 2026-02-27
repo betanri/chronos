@@ -4,7 +4,7 @@ This repository is organized into two main sections:
 
 ## 1) [WHY CHRONOS AND NOT TREEPL](1_WHY_CHRONOS_AND_NOT_TREEPL/README.md)
 
-This tab is the evidence: a 720-run benchmark showing, in the same simulated conditions, that chronos had lower dating error and fewer failures than treePL (conditions tested: 4 clock regimes × 3 extinction levels × 2 heterotachy levels × 30 replicates). It is there to justify method choice with data.
+A 720-run benchmark showing, in the same simulated conditions, that chronos had lower dating error and fewer failures than treePL (conditions tested: 4 clock regimes × 3 extinction levels × 2 heterotachy levels × 30 replicates). It is there to justify method choice with data.
 
 - Folder: [`1_WHY_CHRONOS_AND_NOT_TREEPL`](1_WHY_CHRONOS_AND_NOT_TREEPL)
 - Start here: [`1_WHY_CHRONOS_AND_NOT_TREEPL/README.md`](1_WHY_CHRONOS_AND_NOT_TREEPL/README.md)
