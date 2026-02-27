@@ -91,7 +91,7 @@ If calibration taxa alone exceed `SUBSET_N`, the script stops and asks you to in
 ## How To Run
 
 ```r
-setwd("path/to/project/Terapontoid_Trees")
+setwd("path/to/project")
 source("Run_chronos_pipeline.R")
 ```
 
