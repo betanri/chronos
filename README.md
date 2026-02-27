@@ -134,8 +134,9 @@ Output folder structure:
 
 1. `main_files/`
    - compact deliverables for direct review:
+     - phylogram used for dating (`*_phylogram_used.tree`)
      - one tree per model
-     - fit summary tables
+     - model-fit + tempo summary table (`summary_*_model_fits.csv`)
      - branching-tempo metric table
      - interpretation text
      - subset tip list (when subset mode is enabled)

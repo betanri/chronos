@@ -543,12 +543,13 @@ cal_csv_file <- file.path(TABLES_DIR, paste0(safe_id, "_calibrations_used.csv"))
 cal_csv_file_full <- if (subset_mode_applied && isTRUE(SUBSET_TUNE_ON_SUBSET_ONLY)) {
   file.path(TABLES_DIR, paste0(safe_id, "_calibrations_used_full_tree.csv"))
 } else NA_character_
-summary_file <- file.path(TABLES_DIR, paste0("summary_", OUT_PREFIX, ".csv"))
-summary_sensitivity_file <- file.path(TABLES_DIR, paste0("summary_", OUT_PREFIX, "_sensitivity.csv"))
 model_fits_file <- file.path(TABLES_DIR, paste0("summary_", OUT_PREFIX, "_model_fits.csv"))
 interpretation_file <- file.path(TABLES_DIR, paste0("interpretation_", OUT_PREFIX, ".txt"))
 rds_file <- file.path(TABLES_DIR, paste0("results_", OUT_PREFIX, ".rds"))
 ckpt_file <- file.path(CHECKPOINTS_DIR, paste0("checkpoint_", OUT_PREFIX, ".rds"))
+phylogram_used_file <- file.path(TREES_DIR, paste0(safe_id, "_phylogram_used.tree"))
+phylogram_used <- if (subset_mode_applied && isTRUE(SUBSET_TUNE_ON_SUBSET_ONLY)) target_tree_full else target_tree
+write.tree(phylogram_used, phylogram_used_file)
 
 # Remove previous model-tree duplicates so each run keeps one tree per model.
 old_model_trees <- Sys.glob(file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_model*.tre")))
@@ -646,8 +647,6 @@ if (subset_mode_applied && isTRUE(SUBSET_TUNE_ON_SUBSET_ONLY)) {
     summary_sensitivity$dated_tree_file[i] <- full_file
   }
 }
-
-write.csv(summary_sensitivity, summary_sensitivity_file, row.names = FALSE)
 
 # Build one output tree per model (choose best PHIIC candidate across threshold runs).
 model_rows <- list()
@@ -853,6 +852,7 @@ summary_row$subset_tune_on_subset_only <- if (subset_mode_applied) SUBSET_TUNE_O
 summary_row$subset_tip_file <- subset_tip_file
 summary_row$cal_csv_file_tuning <- cal_csv_file
 summary_row$cal_csv_file_full <- cal_csv_file_full
+summary_row$phylogram_used_file <- phylogram_used_file
 summary_row$n_tips_tuning <- Ntip(target_tree)
 summary_row$n_tips_final <- if (subset_mode_applied && isTRUE(SUBSET_TUNE_ON_SUBSET_ONLY)) Ntip(target_tree_full) else Ntip(target_tree)
 summary_row$dated_tree_file_tuning <- if ("dated_tree_file_tuning" %in% names(summary_sensitivity)) {
@@ -861,14 +861,13 @@ summary_row$dated_tree_file_tuning <- if ("dated_tree_file_tuning" %in% names(su
 summary_row$dated_tree_file_full <- if ("dated_tree_file_full" %in% names(summary_sensitivity)) {
   summary_sensitivity$dated_tree_file_full[pick_idx]
 } else NA_character_
-write.csv(summary_row, summary_file, row.names = FALSE)
 
 saveRDS(list(summary = summary_row, summary_sensitivity = summary_sensitivity, model_fits = model_fits, fits = fit_list, calib = calib, cal_pairs = cal_pairs), rds_file)
 saveRDS(list(summary = summary_row, summary_sensitivity = summary_sensitivity, model_fits = model_fits), ckpt_file)
 
 # Copy key deliverables into a compact main_files folder.
 main_copy <- c(
-  cal_csv_file, cal_csv_file_full, summary_file, summary_sensitivity_file, model_fits_file, interpretation_file, subset_tip_file,
+  cal_csv_file, cal_csv_file_full, model_fits_file, interpretation_file, subset_tip_file, phylogram_used_file,
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelclock.tre")),
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelcorrelated.tre")),
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelrelaxed.tre")),
@@ -882,8 +881,6 @@ msg("Selected default threshold row: ", summary_row$plog_clock_switch_thresh,
     " | model=", summary_row$chronos_model,
     " | lambda=", summary_row$chronos_lambda,
     " | score=", format(summary_row$chronos_fit_score, digits = 6))
-msg("Saved: ", summary_file)
-msg("Saved: ", summary_sensitivity_file)
 msg("Saved: ", model_fits_file)
 msg("Saved: ", interpretation_file)
 msg("Saved: ", rds_file)
