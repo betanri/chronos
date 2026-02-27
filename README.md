@@ -1,4 +1,4 @@
-# Chronos Empirical Pipeline
+# Chronos Custom Pipeline
 
 This pipeline dates a phylogram with `ape::chronos` and gives you:
 
