@@ -122,7 +122,7 @@ if (!all(c("discrete", "clock", "correlated", "relaxed") %in% order_models)) {
   order_models <- c("discrete", "clock", "correlated", "relaxed")
 }
 
-png(file.path(out_fig, "branching_tempo_tree_panel.png"), width = 2500, height = 1450, res = 180)
+png(file.path(out_fig, "branching_tempo_tree_panel_arrows_v2.png"), width = 2500, height = 1450, res = 180)
 layout(matrix(c(1,2,3,4,5,6), nrow = 2, byrow = TRUE))
 par(mar = c(1,1,4,1), oma = c(0,0,1,0))
 plot_one(p_phy, "input phylogram (normalized)", focal_keys)

@@ -29,7 +29,7 @@ Interpretation for this example: the two lowest-metric trees (discrete, clock) p
 
 ## Figure A: Tree-shape comparison (best vs worst)
 
-![Branching tempo tree panel](figures/branching_tempo_tree_panel.png)
+![Branching tempo tree panel](figures/branching_tempo_tree_panel_arrows_v2.png)
 
 How to read:
 
