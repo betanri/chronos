@@ -52,6 +52,13 @@ CLOCK_SWITCH_SENSITIVITY <- c(1, 2)
 TEMPO_EQ_ABS_TOL <- 0.001
 TEMPO_EQ_REL_TOL <- 0.01
 
+# Optional subset mode for large trees (empirical acceleration).
+# Keeps calibration taxa, root-to-tip extremes, and diversified spread.
+USE_SUBSET <- FALSE
+SUBSET_N <- 400L
+SUBSET_EXTREME_FRAC <- 0.05
+SUBSET_SEED <- 1L
+
 # Output
 OUT_BASE_DIR <- "chronos_empirical_out"
 OUT_PREFIX <- "terap_empirical"
@@ -275,6 +282,48 @@ branching_tempo_error <- function(phy_ref, tr_est) {
   )
 }
 
+select_subset_tips <- function(phy, cal_pairs, subset_n = 400L, extreme_frac = 0.05, seed = 1L) {
+  nt <- Ntip(phy)
+  if (!is.finite(subset_n) || subset_n < 2L) stop("SUBSET_N must be >= 2")
+  subset_n <- as.integer(subset_n)
+  if (subset_n >= nt) return(phy$tip.label)
+  set.seed(seed)
+
+  all_tips <- phy$tip.label
+  keep_fixed <- character(0)
+  if (!is.null(cal_pairs) && nrow(cal_pairs)) {
+    keep_fixed <- unique(c(as.character(cal_pairs$taxonA), as.character(cal_pairs$taxonB)))
+    keep_fixed <- keep_fixed[keep_fixed %in% all_tips]
+  }
+  if (length(keep_fixed) > subset_n) {
+    stop("Number of calibration taxa (", length(keep_fixed), ") exceeds SUBSET_N (", subset_n, "). Increase SUBSET_N.")
+  }
+
+  # Root-to-tip extremes from the phylogram.
+  rt <- node.depth.edgelength(phy)[seq_len(nt)]
+  names(rt) <- all_tips
+  k_ext <- max(2L, floor(subset_n * extreme_frac))
+  ord <- names(sort(rt))
+  ext <- unique(c(head(ord, k_ext), tail(ord, k_ext)))
+  ext <- ext[ext %in% all_tips]
+
+  # Diversified spread via ladderized tip order.
+  spread <- ladderize(phy)$tip.label
+  keep <- unique(c(keep_fixed, ext))
+  if (length(keep) < subset_n) {
+    pool <- setdiff(spread, keep)
+    if (length(pool)) {
+      idx <- unique(round(seq(1, length(pool), length.out = min(subset_n - length(keep), length(pool)))))
+      keep <- c(keep, pool[idx])
+    }
+  }
+  if (length(keep) < subset_n) {
+    pool2 <- setdiff(all_tips, keep)
+    keep <- c(keep, sample(pool2, min(length(pool2), subset_n - length(keep)), replace = FALSE))
+  }
+  unique(keep)[seq_len(min(subset_n, length(unique(keep))))]
+}
+
 run_chronos_modelselect <- function(phy, calib, clock_switch_thresh = PLOG_CLOCK_SWITCH_THRESH) {
   best_phiic <- list(tree = NULL, score = Inf, ploglik = NA_real_, model = NA_character_, lambda = NA_real_, nb_rate_cat = NA_integer_, selector_note = "phiic_default")
   best_model_phiic <- setNames(vector("list", length(CHRONOS_MODELS)), CHRONOS_MODELS)
@@ -424,6 +473,37 @@ if (USE_CONGRUIF) {
   msg("Calibration mode: manual_csv | pairs=", nrow(cal_pairs))
 }
 
+subset_tip_file <- NA_character_
+subset_mode_applied <- FALSE
+n_tips_original <- Ntip(target_tree)
+if (isTRUE(USE_SUBSET) && Ntip(target_tree) > SUBSET_N) {
+  keep_tips <- select_subset_tips(
+    phy = target_tree,
+    cal_pairs = cal_pairs,
+    subset_n = SUBSET_N,
+    extreme_frac = SUBSET_EXTREME_FRAC,
+    seed = SUBSET_SEED
+  )
+  drop_tips <- setdiff(target_tree$tip.label, keep_tips)
+  target_tree <- drop.tip(target_tree, drop_tips)
+  cal_pairs <- cal_pairs[
+    cal_pairs$taxonA %in% target_tree$tip.label & cal_pairs$taxonB %in% target_tree$tip.label,
+    , drop = FALSE
+  ]
+  if (!nrow(cal_pairs)) stop("Subset pruning removed all calibration pairs. Increase SUBSET_N.")
+  subset_mode_applied <- TRUE
+  subset_tip_file <- file.path(TABLES_DIR, paste0(gsub("[^A-Za-z0-9_]+", "_", target_id), "_subset_tips_used.csv"))
+  write.csv(data.frame(tip = target_tree$tip.label, stringsAsFactors = FALSE), subset_tip_file, row.names = FALSE)
+  msg("Subset mode: applied | original tips=", n_tips_original,
+      " | retained tips=", Ntip(target_tree),
+      " | calibration pairs retained=", nrow(cal_pairs),
+      " | subset tip file=", subset_tip_file)
+} else {
+  msg("Subset mode: not applied | USE_SUBSET=", USE_SUBSET,
+      " | original tips=", n_tips_original,
+      " | threshold SUBSET_N=", SUBSET_N)
+}
+
 calib <- build_chronos_calib(target_tree, cal_pairs, ROOT_AGE)
 msg("Final calibration nodes on target tree: ", length(calib$node))
 
@@ -476,6 +556,12 @@ for (i in seq_along(thresh_grid)) {
     target_tree_file = TARGET_TREE_FILE,
     target_tree_id = target_id,
     n_tips = Ntip(target_tree),
+    n_tips_original = n_tips_original,
+    subset_mode = subset_mode_applied,
+    subset_n = if (subset_mode_applied) SUBSET_N else NA_integer_,
+    subset_extreme_frac = if (subset_mode_applied) SUBSET_EXTREME_FRAC else NA_real_,
+    subset_seed = if (subset_mode_applied) SUBSET_SEED else NA_integer_,
+    subset_tip_file = subset_tip_file,
     use_congruif = USE_CONGRUIF,
     reference_tree_file = if (USE_CONGRUIF) REFERENCE_TIME_TREE else "",
     root_age = ROOT_AGE,
@@ -687,6 +773,12 @@ summary_row$tempo_eq_rel_tol <- TEMPO_EQ_REL_TOL
 summary_row$recommended_model <- recommended_model
 summary_row$recommendation_reason <- recommendation_reason
 summary_row$interpretation_file <- interpretation_file
+summary_row$n_tips_original <- n_tips_original
+summary_row$subset_mode <- subset_mode_applied
+summary_row$subset_n <- if (subset_mode_applied) SUBSET_N else NA_integer_
+summary_row$subset_extreme_frac <- if (subset_mode_applied) SUBSET_EXTREME_FRAC else NA_real_
+summary_row$subset_seed <- if (subset_mode_applied) SUBSET_SEED else NA_integer_
+summary_row$subset_tip_file <- subset_tip_file
 write.csv(summary_row, summary_file, row.names = FALSE)
 
 saveRDS(list(summary = summary_row, summary_sensitivity = summary_sensitivity, model_fits = model_fits, fits = fit_list, calib = calib, cal_pairs = cal_pairs), rds_file)
@@ -694,7 +786,7 @@ saveRDS(list(summary = summary_row, summary_sensitivity = summary_sensitivity, m
 
 # Copy key deliverables into a compact main_files folder.
 main_copy <- c(
-  cal_csv_file, summary_file, summary_sensitivity_file, model_fits_file, interpretation_file,
+  cal_csv_file, summary_file, summary_sensitivity_file, model_fits_file, interpretation_file, subset_tip_file,
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_clockthresh1.tre")),
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_clockthresh2.tre")),
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelclock.tre")),

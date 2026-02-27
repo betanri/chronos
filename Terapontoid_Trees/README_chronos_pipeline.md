@@ -18,10 +18,11 @@ Given a target phylogram, the script:
 2. Builds calibrations either:
    - from a reference timetree (congruification), or
    - from a manual CSV.
-3. Fits chronos across clock models and lambda values.
-4. Applies robust model selection with threshold sensitivity (`1` and `2`).
-5. Computes branching-tempo metrics (overall and early-tempo) to compare chronograms against the input phylogram branching pattern.
-6. Writes:
+3. Optionally subsets large trees before fitting (while preserving calibration signal and tempo extremes).
+4. Fits chronos across clock models and lambda values.
+5. Applies robust model selection with threshold sensitivity (`1` and `2`).
+6. Computes branching-tempo metrics (overall and early-tempo) to compare chronograms against the input phylogram branching pattern.
+7. Writes:
    - threshold-selected trees
    - one tree per model
    - fit tables
@@ -66,6 +67,26 @@ Manual CSV must contain:
 - `taxonB`
 - `age_min`
 - `age_max`
+
+## Optional Subset Mode For Large Trees
+
+Use this when full-tree fitting is too slow.
+
+```r
+USE_SUBSET <- TRUE
+SUBSET_N <- 400L
+SUBSET_EXTREME_FRAC <- 0.05
+SUBSET_SEED <- 1L
+```
+
+Subset strategy:
+
+1. Always keep all taxa used in calibration pairs (`taxonA`, `taxonB`).
+2. Add root-to-tip extremes from the phylogram (shortest and longest paths).
+3. Fill remaining tips using diversified topological spread (ladderized traversal).
+4. If needed, fill final slots at random from remaining tips.
+
+If calibration taxa alone exceed `SUBSET_N`, the script stops and asks you to increase `SUBSET_N`.
 
 ## How To Run
 
@@ -112,6 +133,7 @@ Output folder structure:
      - fit summary tables
      - branching-tempo metric table
      - interpretation text
+     - subset tip list (when subset mode is enabled)
 2. `all_files/`
    - full run contents:
      - `tables/`
