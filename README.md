@@ -1,4 +1,4 @@
-# Chronos Custom Dating Pipeline
+# Chronos -- Custom Dating Tree Pipeline
 
 This pipeline dates a phylogram with `ape::chronos` and gives you:
 
