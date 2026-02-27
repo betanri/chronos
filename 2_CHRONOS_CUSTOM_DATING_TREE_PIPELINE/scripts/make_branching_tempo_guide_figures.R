@@ -35,7 +35,7 @@ get_norm_height <- function(tr) {
   (m - d) / m
 }
 
-# 1) Clean tree panel with best two and worst two (no arrows/dots; manual annotation ready)
+# 1) Clean tree panel with best two and worst two (manual annotation ready)
 p_phy <- normalize_tree(phy)
 p_mods <- lapply(mods, normalize_tree)
 
@@ -45,22 +45,21 @@ if (!all(c("discrete", "clock", "correlated", "relaxed") %in% order_models)) {
   order_models <- c("discrete", "clock", "correlated", "relaxed")
 }
 
-png(file.path(out_fig, "branching_tempo_tree_panel_clean_v3.png"), width = 3000, height = 1700, res = 220)
+png(file.path(out_fig, "branching_tempo_tree_panel_clean_v3.png"), width = 3400, height = 1900, res = 220)
 layout(matrix(c(1,2,3,4,5,6), nrow = 2, byrow = TRUE))
-par(mar = c(1.5,1,5,1), oma = c(0.5,0.5,1.5,0.5), xpd = NA)
-plot(p_phy, show.tip.label = FALSE, no.margin = TRUE, main = "Input phylogram (normalized)", cex.main = 0.95)
+par(mar = c(1.2, 1.0, 2.8, 1.0), oma = c(0.2, 0.2, 0.2, 0.2), xpd = NA)
+plot(p_phy, show.tip.label = FALSE, no.margin = TRUE, main = "Input phylogram", cex.main = 0.78)
 for (m in order_models) {
   rec <- tempo[tempo$model == m, ][1, ]
-  ttl <- sprintf("%s | overall=%.3f | early=%.3f", m, rec$tempo_mae_all, rec$tempo_mae_early_q75)
-  plot(p_mods[[m]], show.tip.label = FALSE, no.margin = TRUE, main = ttl, cex.main = 0.95)
+  ttl <- sprintf("%s | all %.3f | early %.3f", m, rec$tempo_mae_all, rec$tempo_mae_early_q75)
+  plot(p_mods[[m]], show.tip.label = FALSE, no.margin = TRUE, main = ttl, cex.main = 0.78)
 }
 plot.new()
 legend("center",
        legend = c("Best two by composite: discrete, clock",
                   "Worst two by composite: relaxed, correlated",
-                  "This panel is intentionally unannotated so burst-clade arrows can be added manually."),
-       bty = "n", cex = 1.0)
-mtext("Figure A: Tree-shape comparison (best vs worst)", side = 3, outer = TRUE, line = 0.2, cex = 1.45, font = 2)
+                  "Manual annotation ready (no auto arrows/dots)."),
+       bty = "n", cex = 0.95)
 dev.off()
 
 # 2) Node-height ECDF vs phylogram
