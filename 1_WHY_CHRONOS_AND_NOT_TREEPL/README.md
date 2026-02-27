@@ -75,6 +75,9 @@ This means chronos is much better on age accuracy in this benchmark, but its sel
 
 ![Representative trees (compact; mu=0.8, H=0.25)](figures/fig5_representative_trees_compact.png)
 
+*Footnote:* This panel shows a representative subset only: `mu=0.8`, `H=0.25` across the four true clock regimes (strict, autocorrelated, independent, discrete). Other conditions (`mu=0`, `mu=0.5`, and `H=0.05`) are not shown here. Under the strict-clock simulation, heterotachy is not applied (`rates = 1`), so strict phylograms remain ultrametric even when `H=0.25`.
+
+
 ## Practical interpretation
 
 - For these conditions, chronos is the better default for dating accuracy and stability.
