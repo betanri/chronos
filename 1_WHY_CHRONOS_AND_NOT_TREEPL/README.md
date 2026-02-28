@@ -70,6 +70,22 @@ Chronos had strong age accuracy in this benchmark, but clock-model recovery was 
 
 To make empirical model choice more transparent, I also added a complementary **Branching-Tempo Metric** workflow that compares how well candidate chronograms preserve branching-tempo structure from the input phylogram. See: [Branching-Tempo Metric Guide](../2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/BRANCHING_TEMPO_METRIC_GUIDE.md).
 
+### Recovery by model (exact numbers)
+
+- **Overall exact recovery:** `313/720 (43.5%)`
+- **By true model:**
+  - `clock`: `179/180 (99.4%)`
+  - `correlated`: `134/180 (74.4%)`
+  - `discrete`: `0/180 (0.0%)`
+  - `relaxed`: `0/180 (0.0%)`
+- **Main misclassification pattern (from confusion matrix):**
+  - true `discrete` -> selected `correlated`: `149/180`
+  - true `relaxed` -> selected `correlated`: `119/180`
+  - true `relaxed` -> selected `clock`: `61/180`
+  - true `discrete` -> selected `clock`: `31/180`
+
+These recovery results are the caveat: chronos delivered better age accuracy than treePL overall, but model identification was uneven across clock regimes.
+
 ## Figures
 
 ![Overall MAE boxplot](figures/fig1_overall_mae_boxplot.png)
