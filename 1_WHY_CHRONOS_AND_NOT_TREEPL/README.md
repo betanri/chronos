@@ -63,6 +63,13 @@ I compared **treePL** and **chronos** under the same topology, calibration, and 
 
 This means chronos is much better on age accuracy in this benchmark, but its selector tends to collapse relaxed/discrete scenarios into clock/correlated solutions under this robust setup.
 
+
+## Caveat: clock model fitting vs dating accuracy
+
+Chronos had strong age accuracy in this benchmark, but clock-model recovery was imperfect (especially for true `discrete` and `relaxed` scenarios under this robust selector). This is an important caveat: good dating performance does not guarantee exact recovery of the generating clock model.
+
+To make empirical model choice more transparent, I also added a complementary **Branching-Tempo Metric** workflow that compares how well candidate chronograms preserve branching-tempo structure from the input phylogram. See: [Branching-Tempo Metric Guide](../2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/BRANCHING_TEMPO_METRIC_GUIDE.md).
+
 ## Figures
 
 ![Overall MAE boxplot](figures/fig1_overall_mae_boxplot.png)
@@ -82,7 +89,7 @@ This means chronos is much better on age accuracy in this benchmark, but its sel
 
 - For these conditions, chronos is the better default for dating accuracy and stability.
 - treePL can still be informative, but it degrades strongly in harder regimes.
-- For empirical analyses, keep model-sensitivity reporting explicit even when chronos is used as the primary method.
+- For empirical analyses, keep model-sensitivity reporting explicit even when chronos is used as the primary method, and report both fit-based model choice and branching-tempo diagnostics.
 
 ## Data files
 
