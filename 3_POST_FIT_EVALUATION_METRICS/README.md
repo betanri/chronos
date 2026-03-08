@@ -43,17 +43,17 @@ This figure is useful because it shows the pulse layer directly on the bundled `
 
 ## Ranked post-fit results (lower is better)
 
-In this Terapontoid example, `gap burden` behaves as `point-calibration slack`, not as fossil-minimum ghost-lineage burden, because the comparison uses point calibrations.
+In this Terapontoid example, `gap burden` behaves as `point-calibration slack`, not as fossil-minimum ghost-lineage burden, because the comparison uses point calibrations. The pulse columns below are the composite pulse selectors. `burst_loss` is shown explicitly as the standalone pulse-flattening submetric.
 
-| candidate | pulse preservation (default) | pulse preservation (burst) | gap burden | rate plausibility | overall mean rank |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| `chronos_discrete` | `0.1603` | `0.1462` | `0.0733` | `2.5982` | `1.25` |
-| `chronos_clock` | `0.1605` | `0.1464` | `0.0736` | `2.5861` | `1.75` |
-| `chronos_correlated` | `0.1722` | `0.1478` | `0.1058` | `3.4566` | `3.25` |
-| `treePL` | `0.1729` | `0.1604` | `0.1615` | `3.4631` | `4.25` |
-| `chronos_relaxed` | `0.1949` | `0.1684` | `0.1030` | `4.5535` | `4.50` |
+| candidate | pulse preservation (default) | burst loss | pulse preservation (burst) | gap burden | rate plausibility | overall mean rank |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `chronos_discrete` | `0.1603` | `0.1346` | `0.1462` | `0.0733` | `2.5982` | `1.25` |
+| `chronos_clock` | `0.1605` | `0.1348` | `0.1464` | `0.0736` | `2.5861` | `1.75` |
+| `chronos_correlated` | `0.1722` | `0.1158` | `0.1478` | `0.1058` | `3.4566` | `3.25` |
+| `treePL` | `0.1729` | `0.1550` | `0.1604` | `0.1615` | `3.4631` | `4.25` |
+| `chronos_relaxed` | `0.1949` | `0.1382` | `0.1684` | `0.1030` | `4.5535` | `4.50` |
 
-In short: `chronos_discrete` leads both pulse summaries and `gap burden`, while `chronos_clock` leads `rate plausibility`.
+In short: `chronos_discrete` leads both pulse selector summaries and `gap burden`, `chronos_correlated` minimizes the standalone `burst_loss` submetric, and `chronos_clock` leads `rate plausibility`.
 
 ## Figure B: Post-fit comparison across metric families
 
