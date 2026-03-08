@@ -1,12 +1,12 @@
-# Branching-Tempo Metric Guide (Example Output)
+# Pulse-Preservation Metric Guide (Example Output)
 
-This page shows why the Branching-Tempo metric is useful for tree selection beyond clock-model fit alone.
+This page shows why the pulse-preservation metric is useful for tree selection beyond clock-model fit alone.
 
 ## What this diagnostic adds
 
 Clock-model fit (`PHIIC` / penalized likelihood) answers: *which model fits the branch-length process best under the chronos objective*.
 
-Branching-Tempo answers a different question: *which dated tree preserves the diversification pulse pattern seen in the input phylogram*.
+Pulse preservation answers a different question: *which dated tree preserves the diversification pulse pattern seen in the input phylogram*.
 
 Using both helps avoid choosing a tree that is statistically favored but biologically implausible for your clade's tempo history.
 
@@ -14,9 +14,9 @@ Using both helps avoid choosing a tree that is statistically favored but biologi
 
 - Input phylogram: `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/OUTPUT_DEMO/TERAP_ML_MAIN_phylogram_used.tree`
 - Model trees: `.../TERAP_ML_MAIN_chronos_dated_model{clock,correlated,relaxed,discrete}.tre`
-- Tempo table: `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/OUTPUT_DEMO/summary_terap_empirical_model_fits.csv`
+- Summary table: `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/OUTPUT_DEMO/summary_terap_empirical_model_fits.csv`
 
-## Ranked tempo results (lower is better)
+## Ranked pulse results (lower is better for the error summaries)
 
 From the example output:
 
@@ -29,26 +29,26 @@ Interpretation for this example: the two lowest-metric trees (discrete, clock) p
 
 ## Figure A: Tree-shape comparison (best vs worst)
 
-![Branching tempo tree panel](figures/branching_tempo_tree_panel_clean_v3.png)
+![Pulse preservation tree panel](figures/branching_tempo_tree_panel_clean_v3.png)
 
 How to read:
 
 - All trees are normalized to comparable root-to-tip scale.
 - The best two metric trees retain burst placement more similarly to the input phylogram than the worst two.
-- Arrows show clades with diversification pulses in phylogram that are only preserved in best two chronograms (discrete, clock).
+- Arrows show clades with diversification pulses in the phylogram that are preserved only in the best two chronograms (discrete, clock).
 
 ## Figure B: Metric comparison by model
 
-![Branching tempo metric bars](figures/branching_tempo_metric_bars.png)
+![Pulse preservation metric bars](figures/branching_tempo_metric_bars.png)
 
-This summarizes both overall and early-tempo error used to rank models.
+This summarizes the overall and early pulse-error summaries used to rank models.
 
 ## Practical decision rule
 
 For empirical trees, use both layers:
 
 1. Fit-layer: robust model selector from chronos fit statistics.
-2. Tempo-layer: Branching-Tempo metric to check biological plausibility of diversification pulses.
+2. Pulse layer: pulse-preservation metric to check biological plausibility of diversification pulses.
 
 If they agree, selection is straightforward.
 If they disagree, report both and justify final choice using clade-specific biological context.

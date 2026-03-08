@@ -1,0 +1,6 @@
+"metric","treePL_better_conditions","chronos_better_conditions","ties"
+"pulse_score_higher_better",0,24,0
+"burst_loss_lower_better",0,23,1
+"tempo_composite_lower_better",1,23,0
+"mae_mean30_lower_better",2,22,0
+"rate_irregularity_lower_better",6,18,0

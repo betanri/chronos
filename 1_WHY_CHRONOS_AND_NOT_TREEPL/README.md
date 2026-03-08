@@ -63,12 +63,31 @@ I compared **treePL** and **chronos** under the same topology, calibration, and 
 
 This means chronos is much better on age accuracy in this benchmark, but its selector tends to collapse relaxed/discrete scenarios into clock/correlated solutions under this robust setup.
 
-
 ## Caveat: clock model fitting vs dating accuracy
 
 Chronos had strong age accuracy in this benchmark, but clock-model recovery was imperfect (especially for true `discrete` and `relaxed` scenarios under this robust selector). This is an important caveat: good dating performance does not guarantee exact recovery of the generating clock model.
 
-To make empirical model choice more transparent, I also added a complementary **Branching-Tempo Metric** workflow that compares how well candidate chronograms preserve branching-tempo structure from the input phylogram. See: [Branching-Tempo Metric Guide](../2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/BRANCHING_TEMPO_METRIC_GUIDE.md).
+That caveat is exactly why the later workflow added a broader comparative metric framework. In addition to MAE and failure rate, the benchmark can now also be read through a `pulse preservation` lens that asks whether a dated tree preserves clustered branching bursts and quiet intervals from the reference tree, plus complementary `gap burden` and `rate plausibility` metrics.
+
+### New metric lens added after the original benchmark
+
+The benchmark was originally centered on MAE and failure rate. It should still be read that way first. But the later project work added three complementary metrics that help interpret method behavior beyond raw dating error:
+
+- `pulse preservation`
+  - asks whether the dated tree keeps the same diversification rhythm as the reference tree
+- `gap burden`
+  - asks how much fossil-gap burden or calibration slack the dated tree implies
+  - this is not usable in the 720 benchmark because the design uses only a fixed root calibration
+- `rate plausibility`
+  - asks whether the dated tree requires extreme or erratic branchwise rate changes
+
+For the 720 simulation outputs that were later rescored with the new framework, the interpretation remains favorable to chronos:
+
+- `pulse preservation`: chronos better in all 24 representative-condition comparisons by `pulse_score`, and in 23/24 by `burst_loss` and `tempo_composite`
+- `rate plausibility`: chronos better in 18/24 representative-condition comparisons by `rate_irregularity`
+- `gap burden`: not applicable by design under root-only calibration
+
+So the new metrics do not overturn the original conclusion. They reinforce it, while adding a more biologically informative view of tree shape and implied rate behavior.
 
 ### Recovery by model (exact numbers)
 
@@ -100,12 +119,22 @@ These recovery results are the caveat: chronos delivered better age accuracy tha
 
 *Footnote:* This panel shows a representative subset only: `mu=0.8`, `H=0.25` across the four true clock regimes (strict, autocorrelated, independent, discrete). Other conditions (`mu=0`, `mu=0.5`, and `H=0.05`) are not shown here. Under the strict-clock simulation, heterotachy is not applied (`rates = 1`), so strict phylograms remain ultrametric even when `H=0.25`.
 
+## New metric figures
+
+![Representative-condition wins by metric](figures/fig6_pulse_rate_win_counts.png)
+
+This figure summarizes the later 720 rescoring under the new framework. Pulse and rate metrics are computed on one representative tree for each of the 24 simulation conditions, whereas MAE uses all replicate values.
+
+![Method means under pulse and rate metrics](figures/fig7_pulse_rate_method_means.png)
+
+This figure shows method means for the new pulse-preservation and rate-plausibility summaries. Chronos has higher `pulse_score` and lower `pulse_error`, `burst_loss`, and `rate_irregularity` than treePL in these representative-tree comparisons.
 
 ## Practical interpretation
 
 - For these conditions, chronos is the better default for dating accuracy and stability.
+- The later pulse-preservation and rate-plausibility metrics support the same general direction rather than reversing it.
 - treePL can still be informative, but it degrades strongly in harder regimes.
-- For empirical analyses, keep model-sensitivity reporting explicit even when chronos is used as the primary method, and report both fit-based model choice and branching-tempo diagnostics.
+- For empirical analyses, keep model-sensitivity reporting explicit even when chronos is used as the primary method, and report fit-based model choice together with pulse preservation, gap burden when available, and rate plausibility.
 
 ## Data files
 
@@ -114,3 +143,6 @@ These recovery results are the caveat: chronos delivered better age accuracy tha
 - `by_heterotachy_summary.csv`
 - `chronos_recovery_summary.csv`
 - `chronos_recovery_confusion_matrix.csv`
+- `data/pulse_metric_720_method_mean_summary.csv`
+- `data/pulse_metric_720_wins_table.csv`
+- `data/pulse_metric_720_delta_by_clock_model.csv`

@@ -4,13 +4,14 @@
 
 - [**Why Chronos and not treePL?**](../1_WHY_CHRONOS_AND_NOT_TREEPL/README.md)
 
-
 This pipeline dates a phylogram with `ape::chronos` and gives you:
 
 - one chronogram per clock model (`clock`, `correlated`, `relaxed`, `discrete`)
 - an explicit comparison between:
   - model-fit preference
-  - branching-tempo similarity to the original phylogram
+  - pulse-preservation similarity to the original phylogram
+  - gap burden against the calibration information
+  - rate plausibility relative to the source phylogram
 
 The goal is to help you decide which dated tree is most defensible for your biological question.
 
@@ -25,11 +26,11 @@ Given a target phylogram, the script:
 3. Optionally subsets large trees before fitting (while preserving calibration signal and tempo extremes).
 4. Fits chronos across clock models and lambda values.
 5. Applies robust model selection with threshold sensitivity (`1` and `2`).
-6. Computes branching-tempo metrics (overall and early-tempo) to compare chronograms against the input phylogram branching pattern.
+6. Computes pulse-preservation metrics to compare chronograms against the input phylogram branching pattern.
 7. Writes:
    - one tree per model
    - fit tables
-   - branching-tempo metric table
+   - pulse-preservation metric table
    - a plain-language interpretation text file.
 
 ## Main Script
@@ -112,25 +113,40 @@ The script evaluates and reports both:
 - `PLOG_CLOCK_SWITCH_THRESH = 1` (default strict)
 - `PLOG_CLOCK_SWITCH_THRESH = 2` (stricter)
 
+## Pulse-Preservation Metric (Biology-Oriented Diagnostic)
 
-## Branching-Tempo Metric (Biology-Oriented Diagnostic)
+Detailed walkthrough:
 
-Detailed walkthrough (example-based):
+- [Pulse-Preservation Metric Guide](BRANCHING_TEMPO_METRIC_GUIDE.md)
 
-- [Branching-Tempo Metric Guide](BRANCHING_TEMPO_METRIC_GUIDE.md)
+This metric family asks whether a dated tree preserves clustering of branching bursts and quiet intervals rather than flattening them into an unrealistically even schedule.
 
-This metric compares each chronogram to the original phylogram in terms of branching tempo.
+How the updated metric family is interpreted:
 
-How it works:
+1. Match internal nodes by clade identity when node-based comparisons are needed.
+2. Compare the distribution and clustering of branching events through relative time.
+3. Penalize loss of burst structure and reward preservation of diversification pulses.
+4. Read these results together with gap burden and rate plausibility rather than as a standalone winner metric.
 
-1. Match internal nodes by clade identity (same descendant tip set).
-2. Normalize node heights to `[0,1]` (root deep, tips shallow).
-3. Compute:
-   - `tempo_mae_all` (all internal nodes)
-   - `tempo_mae_early_q75` (deep/early nodes only, top quartile)
-   - `tempo_median_early_q75`
+## Three Complementary Metrics
 
-Lower values mean the chronogram preserves the phylogram’s branching-tempo pattern better.
+The updated comparison layer is meant to be read through three complementary metrics.
+
+### 1. Pulse preservation
+
+- asks whether a dated tree preserves branching bursts and quiet intervals from the source phylogram
+- this is the main tree-shape diagnostic in the current workflow
+
+### 2. Gap burden
+
+- if calibrations are fossil minima or bounded intervals, this behaves as implied ghost-lineage / fossil-gap burden
+- if calibrations are exact ages, this behaves as calibration slack
+- lower values mean the dated tree sits closer to the calibration information
+
+### 3. Rate plausibility
+
+- converts phylogram branch lengths and chronogram branch durations into implied branchwise rates
+- penalizes extreme rate dispersion, abrupt parent-child jumps, weak local autocorrelation, and too many outlier rates
 
 ## Outputs (Dedicated Run Folder)
 
@@ -144,8 +160,8 @@ Output folder structure:
    - compact deliverables for direct review:
      - phylogram used for dating (`*_phylogram_used.tree`)
      - one tree per model
-     - model-fit + tempo summary table (`summary_*_model_fits.csv`)
-     - branching-tempo metric table
+     - model-fit + pulse summary table (`summary_*_model_fits.csv`)
+     - pulse-preservation metric table
      - interpretation text
      - subset tip list (when subset mode is enabled)
 2. `all_files/`
@@ -163,8 +179,10 @@ Notes:
 
 ## Practical Reading Of Results
 
-- If fit and tempo both favor the same model: strong convergence.
-- If fit favors one model but tempo favors another: report both explicitly and choose based on your biological objective (clock-model fit vs preservation of branching-tempo pattern).
+- If fit and pulse preservation favor the same model: strong convergence.
+- If fit favors one model but pulse preservation favors another: report both explicitly.
+- If gap burden or rate plausibility disagree with both fit and pulse preservation, treat that as biologically meaningful conflict rather than noise.
+- Do not choose from fit alone when the dated trees imply very different branching rhythm or very different rate behavior.
 
 ## Common Issues
 
