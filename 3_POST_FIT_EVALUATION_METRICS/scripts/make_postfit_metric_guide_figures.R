@@ -45,6 +45,6 @@ text(bp, d$rank_mean_4families,
      labels = paste0(sprintf('%.2f', d$rank_mean_4families), ' (rank ', d$rank_mean_4families_rank, ')'),
      pos = 3, cex = 0.85)
 mtext('Lower is better', side = 1, line = 6.4, cex = 0.9)
-mtext('Terap example: post-fit evaluation metrics across chronos models and treePL', side = 3, outer = TRUE, line = 0.5, cex = 1.6, font = 2)
+mtext('Terapontoid example: post-fit evaluation metrics across chronos models and treePL', side = 3, outer = TRUE, line = 0.5, cex = 1.6, font = 2)
 dev.off()
 message('Done. Wrote: ', normalizePath(file.path(out_fig, 'postfit_metric_family_values.png'), winslash = '/'))

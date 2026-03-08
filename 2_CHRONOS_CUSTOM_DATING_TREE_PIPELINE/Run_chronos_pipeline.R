@@ -285,6 +285,316 @@ branching_tempo_error <- function(phy_ref, tr_est) {
   )
 }
 
+metric_node_sig_internal <- function(tr) {
+  n <- ape::Ntip(tr)
+  pp <- ape::prop.part(tr)
+  s <- character(tr$Nnode)
+  for (i in seq_len(tr$Nnode)) {
+    tips <- sort(tr$tip.label[pp[[i]]])
+    s[i] <- paste(tips, collapse = "|")
+  }
+  names(s) <- as.character((n + 1):(n + tr$Nnode))
+  s
+}
+
+metric_node_heights_norm <- function(tr) {
+  n <- ape::Ntip(tr)
+  d <- ape::node.depth.edgelength(tr)
+  maxd <- max(d[seq_len(n)])
+  h <- 1 - (d / maxd)
+  names(h) <- as.character(seq_along(h))
+  h
+}
+
+metric_node_ages <- function(tr) {
+  n <- ape::Ntip(tr)
+  d <- ape::node.depth.edgelength(tr)
+  maxd <- max(d[seq_len(n)])
+  age <- maxd - d
+  names(age) <- as.character(seq_along(age))
+  age
+}
+
+metric_wasserstein_1d <- function(x, y) {
+  x <- sort(as.numeric(x))
+  y <- sort(as.numeric(y))
+  if (!length(x) || !length(y)) return(NA_real_)
+  m <- max(length(x), length(y), 32L)
+  p <- seq(0, 1, length.out = m)
+  qx <- as.numeric(stats::quantile(x, p, type = 8, names = FALSE))
+  qy <- as.numeric(stats::quantile(y, p, type = 8, names = FALSE))
+  mean(abs(qx - qy))
+}
+
+metric_event_times_relative <- function(tr) {
+  n <- ape::Ntip(tr)
+  if (tr$Nnode < 2L) return(numeric(0))
+  d <- ape::node.depth.edgelength(tr)
+  max_tip <- max(d[seq_len(n)])
+  if (!is.finite(max_tip) || max_tip <= 0) return(numeric(0))
+  h <- 1 - (d / max_tip)
+  hi <- h[(n + 1L):(n + tr$Nnode)]
+  crown <- max(hi, na.rm = TRUE)
+  if (!is.finite(crown) || crown <= 0) return(numeric(0))
+  ev <- hi[hi < (crown - 1e-12)] / crown
+  ev <- ev[is.finite(ev)]
+  sort(pmax(0, pmin(1, ev)))
+}
+
+metric_burstiness_from_events <- function(ev) {
+  if (!length(ev)) return(NA_real_)
+  waits <- diff(c(0, ev, 1))
+  if (length(waits) < 2L) return(NA_real_)
+  m <- mean(waits)
+  if (!is.finite(m) || m <= 0) return(NA_real_)
+  stats::sd(waits) / m
+}
+
+metric_build_pulse_panel <- function(ref, min_tips = 8L, min_events = 4L) {
+  ref_nodes <- (ape::Ntip(ref) + 1L):(ape::Ntip(ref) + ref$Nnode)
+  panel <- list()
+  for (nd in ref_nodes) {
+    sub <- try(ape::extract.clade(ref, nd), silent = TRUE)
+    if (inherits(sub, "try-error") || !inherits(sub, "phylo")) next
+    nt <- ape::Ntip(sub)
+    if (nt < min_tips || nt >= ape::Ntip(ref)) next
+    ev <- metric_event_times_relative(sub)
+    if (length(ev) < min_events) next
+    b <- metric_burstiness_from_events(ev)
+    if (!is.finite(b)) next
+    panel[[length(panel) + 1L]] <- list(
+      ref_node = nd,
+      tips = sort(sub$tip.label),
+      n_tips = nt,
+      n_events = length(ev),
+      ev_ref = ev,
+      burst_ref = b,
+      centroid_ref = mean(ev)
+    )
+  }
+  panel
+}
+
+metric_score_pulse_panel <- function(ref, tr, panel,
+                                     w_emd = 0.35,
+                                     w_burst_loss = 0.55,
+                                     w_centroid = 0.10,
+                                     w_global = 0.20,
+                                     coverage_penalty = 0.20) {
+  global_ref <- metric_event_times_relative(ref)
+  global_burst_ref <- metric_burstiness_from_events(global_ref)
+
+  w_sum <- 0
+  emd_sum <- 0
+  burst_loss_sum <- 0
+  centroid_sum <- 0
+  matched <- 0L
+
+  for (k in seq_along(panel)) {
+    cl <- panel[[k]]
+    node_c <- ape::getMRCA(tr, cl$tips)
+    if (!is.finite(node_c)) next
+    sub_c <- try(ape::extract.clade(tr, node_c), silent = TRUE)
+    if (inherits(sub_c, "try-error") || !inherits(sub_c, "phylo")) next
+    if (!setequal(sub_c$tip.label, cl$tips)) next
+    ev_c <- metric_event_times_relative(sub_c)
+    if (length(ev_c) < 2L) next
+    emd <- metric_wasserstein_1d(cl$ev_ref, ev_c)
+    burst_c <- metric_burstiness_from_events(ev_c)
+    if (!is.finite(emd) || !is.finite(burst_c)) next
+    burst_loss <- max(0, (cl$burst_ref - burst_c) / (cl$burst_ref + 1e-12))
+    centroid_shift <- abs(cl$centroid_ref - mean(ev_c))
+    w <- log1p(cl$n_tips) * sqrt(cl$n_events)
+    w_sum <- w_sum + w
+    emd_sum <- emd_sum + (w * emd)
+    burst_loss_sum <- burst_loss_sum + (w * burst_loss)
+    centroid_sum <- centroid_sum + (w * centroid_shift)
+    matched <- matched + 1L
+  }
+
+  if (w_sum <= 0 || matched == 0L) return(NULL)
+
+  mean_emd <- emd_sum / w_sum
+  mean_burst_loss <- burst_loss_sum / w_sum
+  mean_centroid <- centroid_sum / w_sum
+  pulse_error <- (w_emd * mean_emd) + (w_burst_loss * mean_burst_loss) + (w_centroid * mean_centroid)
+
+  global_est <- metric_event_times_relative(tr)
+  global_emd <- metric_wasserstein_1d(global_ref, global_est)
+  global_burst_est <- metric_burstiness_from_events(global_est)
+  global_burst_loss <- max(0, (global_burst_ref - global_burst_est) / (global_burst_ref + 1e-12))
+  global_error <- (0.35 * global_emd) + (0.65 * global_burst_loss)
+
+  coverage <- matched / length(panel)
+  selector_error <- ((1 - w_global) * pulse_error) + (w_global * global_error) + (coverage_penalty * (1 - coverage))
+  selector_score <- 1 / (1 + selector_error)
+
+  data.frame(
+    matched_clades = matched,
+    panel_clades = length(panel),
+    coverage = coverage,
+    mean_emd = mean_emd,
+    mean_burst_loss = mean_burst_loss,
+    mean_centroid_shift = mean_centroid,
+    local_error = pulse_error,
+    global_emd = global_emd,
+    global_burst_loss = global_burst_loss,
+    global_error = global_error,
+    selector_error = selector_error,
+    selector_score = selector_score,
+    stringsAsFactors = FALSE
+  )
+}
+
+metric_edge_signature <- function(tr) {
+  n <- ape::Ntip(tr)
+  all_tips <- ape::prop.part(tr)
+  sig <- character(nrow(tr$edge))
+  for (i in seq_len(nrow(tr$edge))) {
+    ch <- tr$edge[i, 2]
+    if (ch <= n) {
+      sig[i] <- paste0("tip:", tr$tip.label[ch])
+    } else {
+      idx <- ch - n
+      tips <- sort(tr$tip.label[all_tips[[idx]]])
+      sig[i] <- paste0("clade:", paste(tips, collapse = "|"))
+    }
+  }
+  sig
+}
+
+metric_rate_pair_metrics <- function(ref_tree, dated_tree) {
+  ref_df <- data.frame(
+    sig = metric_edge_signature(ref_tree),
+    ref_branch = ref_tree$edge.length,
+    stringsAsFactors = FALSE
+  )
+  est_sig <- metric_edge_signature(dated_tree)
+  est_df <- data.frame(
+    sig = est_sig,
+    time_branch = dated_tree$edge.length,
+    parent_node = dated_tree$edge[, 1],
+    child_node = dated_tree$edge[, 2],
+    stringsAsFactors = FALSE
+  )
+
+  merged <- merge(est_df, ref_df, by = "sig", all = FALSE)
+  merged <- merged[is.finite(merged$time_branch) & merged$time_branch > 0 &
+                     is.finite(merged$ref_branch) & merged$ref_branch > 0, , drop = FALSE]
+  if (!nrow(merged)) {
+    return(data.frame(
+      rate_n_edges = 0L,
+      rate_mean = NA_real_,
+      rate_median = NA_real_,
+      rate_cv = NA_real_,
+      log_rate_sd = NA_real_,
+      log_rate_iqr = NA_real_,
+      extreme_rate_frac = NA_real_,
+      parent_child_pairs = 0L,
+      parent_child_jump_mean = NA_real_,
+      parent_child_jump_q95 = NA_real_,
+      rate_autocorr_spearman = NA_real_,
+      rate_irregularity = NA_real_,
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  merged$rate <- merged$ref_branch / merged$time_branch
+  merged$log_rate <- log(merged$rate)
+
+  node_to_sig <- setNames(est_sig, dated_tree$edge[, 2])
+  parent_sig <- unname(node_to_sig[as.character(merged$parent_node)])
+  rate_map <- setNames(merged$rate, merged$sig)
+  parent_rate <- unname(rate_map[parent_sig])
+  keep_pairs <- is.finite(parent_rate) & is.finite(merged$rate) & parent_rate > 0 & merged$rate > 0
+  jump <- abs(log(merged$rate[keep_pairs]) - log(parent_rate[keep_pairs]))
+
+  q <- stats::quantile(merged$log_rate, c(0.25, 0.75), na.rm = TRUE, names = FALSE)
+  iqr_lr <- q[2] - q[1]
+  if (is.finite(iqr_lr) && iqr_lr > 0) {
+    lo <- q[1] - (1.5 * iqr_lr)
+    hi <- q[2] + (1.5 * iqr_lr)
+    extreme_frac <- mean(merged$log_rate < lo | merged$log_rate > hi)
+  } else {
+    extreme_frac <- 0
+  }
+
+  if (length(jump) >= 5) {
+    autocorr <- suppressWarnings(stats::cor(log(parent_rate[keep_pairs]), log(merged$rate[keep_pairs]), method = "spearman"))
+  } else {
+    autocorr <- NA_real_
+  }
+  autocorr_penalty <- if (is.finite(autocorr)) {
+    1 - max(autocorr, 0)
+  } else if (stats::sd(merged$log_rate) < 1e-10) {
+    0
+  } else {
+    1
+  }
+
+  data.frame(
+    rate_n_edges = nrow(merged),
+    rate_mean = mean(merged$rate),
+    rate_median = stats::median(merged$rate),
+    rate_cv = stats::sd(merged$rate) / mean(merged$rate),
+    log_rate_sd = stats::sd(merged$log_rate),
+    log_rate_iqr = stats::IQR(merged$log_rate),
+    extreme_rate_frac = extreme_frac,
+    parent_child_pairs = sum(keep_pairs),
+    parent_child_jump_mean = if (length(jump)) mean(jump) else NA_real_,
+    parent_child_jump_q95 = if (length(jump)) as.numeric(stats::quantile(jump, 0.95, names = FALSE)) else NA_real_,
+    rate_autocorr_spearman = autocorr,
+    rate_irregularity = stats::sd(merged$log_rate) +
+      ifelse(length(jump), mean(jump), 0) +
+      (2 * extreme_frac) +
+      autocorr_penalty,
+    stringsAsFactors = FALSE
+  )
+}
+
+metric_fossil_gap_by_pairs <- function(dated_tree, calibrations, tol = 1e-4) {
+  age_by_node <- metric_node_ages(dated_tree)
+  detail <- calibrations
+  detail$tree_mrca <- mapply(function(a, b) ape::getMRCA(dated_tree, c(a, b)), detail$taxonA, detail$taxonB)
+  detail$node_age <- as.numeric(age_by_node[as.character(detail$tree_mrca)])
+  detail$ghost_gap_ma_raw <- detail$node_age - detail$age_min
+  detail$ghost_gap_ma_raw[abs(detail$ghost_gap_ma_raw) < tol] <- 0
+  is_point <- is.finite(detail$age_max) & abs(detail$age_max - detail$age_min) < tol
+  detail$ghost_gap_ma <- ifelse(is_point, abs(detail$ghost_gap_ma_raw), pmax(0, detail$ghost_gap_ma_raw))
+  detail$ghost_relmin <- detail$ghost_gap_ma / detail$age_min
+  detail$min_violation_ma <- pmax(0, detail$age_min - detail$node_age - tol)
+  detail$max_violation_ma <- pmax(0, detail$node_age - detail$age_max - tol)
+
+  total_min <- sum(detail$age_min, na.rm = TRUE)
+  violation_sum <- sum((detail$min_violation_ma + detail$max_violation_ma)[!is_point], na.rm = TRUE)
+  if (all(is_point)) {
+    burden <- mean(detail$ghost_relmin, na.rm = TRUE)
+    gap_mode <- "point_calibration_slack"
+  } else if (all(!is_point)) {
+    burden <- mean(detail$ghost_relmin, na.rm = TRUE) + (5 * violation_sum / total_min)
+    gap_mode <- "minimum_window_gap"
+  } else {
+    burden <- mean(detail$ghost_relmin, na.rm = TRUE) + (5 * violation_sum / total_min)
+    gap_mode <- "mixed_point_and_window"
+  }
+  data.frame(
+    fossil_n_calibrations = nrow(detail),
+    fossil_n_missing_node_age = sum(!is.finite(detail$node_age)),
+    ghost_sum_ma = sum(detail$ghost_gap_ma, na.rm = TRUE),
+    ghost_mean_ma = mean(detail$ghost_gap_ma, na.rm = TRUE),
+    ghost_median_ma = stats::median(detail$ghost_gap_ma, na.rm = TRUE),
+    ghost_rel_mean = mean(detail$ghost_relmin, na.rm = TRUE),
+    ghost_rel_median = stats::median(detail$ghost_relmin, na.rm = TRUE),
+    min_violation_count = sum(detail$min_violation_ma > 0, na.rm = TRUE),
+    min_violation_sum_ma = sum(detail$min_violation_ma, na.rm = TRUE),
+    max_violation_count = sum(detail$max_violation_ma > 0, na.rm = TRUE),
+    max_violation_sum_ma = sum(detail$max_violation_ma, na.rm = TRUE),
+    gap_mode = gap_mode,
+    fossil_gap_burden = burden,
+    stringsAsFactors = FALSE
+  )
+}
+
 select_subset_tips <- function(phy, cal_pairs, subset_n = 400L, extreme_frac = 0.05, seed = 1L) {
   nt <- Ntip(phy)
   if (!is.finite(subset_n) || subset_n < 2L) stop("SUBSET_N must be >= 2")
@@ -544,6 +854,7 @@ cal_csv_file_full <- if (subset_mode_applied && isTRUE(SUBSET_TUNE_ON_SUBSET_ONL
   file.path(TABLES_DIR, paste0(safe_id, "_calibrations_used_full_tree.csv"))
 } else NA_character_
 model_fits_file <- file.path(TABLES_DIR, paste0("summary_", OUT_PREFIX, "_model_fits.csv"))
+postfit_metrics_file <- file.path(TABLES_DIR, paste0("summary_", OUT_PREFIX, "_postfit_metrics.csv"))
 interpretation_file <- file.path(TABLES_DIR, paste0("interpretation_", OUT_PREFIX, ".txt"))
 rds_file <- file.path(TABLES_DIR, paste0("results_", OUT_PREFIX, ".rds"))
 ckpt_file <- file.path(CHECKPOINTS_DIR, paste0("checkpoint_", OUT_PREFIX, ".rds"))
@@ -650,6 +961,10 @@ if (subset_mode_applied && isTRUE(SUBSET_TUNE_ON_SUBSET_ONLY)) {
 
 # Build one output tree per model (choose best PHIIC candidate across threshold runs).
 model_rows <- list()
+pulse_panel <- metric_build_pulse_panel(target_tree, min_tips = 8L, min_events = 4L)
+if (!length(pulse_panel)) {
+  msg("Post-fit pulse panel: no eligible clades found; pulse-preservation metrics will be NA.")
+}
 for (mdl in CHRONOS_MODELS) {
   cand <- Filter(function(x) identical(x$model, mdl) && !is.null(x$fit) && inherits(x$fit$tree, "phylo"), model_candidates)
   if (!length(cand)) next
@@ -658,6 +973,22 @@ for (mdl in CHRONOS_MODELS) {
   out_tree <- file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_model", mdl, ".tre"))
   write.tree(pick$fit$tree, out_tree)
   bt <- branching_tempo_error(target_tree, pick$fit$tree)
+  pulse_default <- if (length(pulse_panel)) {
+    metric_score_pulse_panel(
+      target_tree, pick$fit$tree, pulse_panel,
+      w_emd = 0.35, w_burst_loss = 0.55, w_centroid = 0.10,
+      w_global = 0.20, coverage_penalty = 0.20
+    )
+  } else NULL
+  pulse_burst <- if (length(pulse_panel)) {
+    metric_score_pulse_panel(
+      target_tree, pick$fit$tree, pulse_panel,
+      w_emd = 0.20, w_burst_loss = 0.75, w_centroid = 0.05,
+      w_global = 0.20, coverage_penalty = 0.20
+    )
+  } else NULL
+  gap <- metric_fossil_gap_by_pairs(pick$fit$tree, cal_pairs)
+  rate <- metric_rate_pair_metrics(target_tree, pick$fit$tree)
   model_rows[[length(model_rows) + 1L]] <- data.frame(
     target_tree_file = TARGET_TREE_FILE,
     target_tree_id = target_id,
@@ -674,6 +1005,23 @@ for (mdl in CHRONOS_MODELS) {
     tempo_mae_all = bt$mae_all,
     tempo_mae_early_q75 = bt$mae_early_q75,
     tempo_median_early_q75 = bt$median_early_q75,
+    pulse_default_selector_error = if (is.null(pulse_default)) NA_real_ else pulse_default$selector_error[1],
+    pulse_default_selector_score = if (is.null(pulse_default)) NA_real_ else pulse_default$selector_score[1],
+    pulse_default_coverage = if (is.null(pulse_default)) NA_real_ else pulse_default$coverage[1],
+    pulse_default_mean_burst_loss = if (is.null(pulse_default)) NA_real_ else pulse_default$mean_burst_loss[1],
+    pulse_burst_selector_error = if (is.null(pulse_burst)) NA_real_ else pulse_burst$selector_error[1],
+    pulse_burst_selector_score = if (is.null(pulse_burst)) NA_real_ else pulse_burst$selector_score[1],
+    pulse_burst_coverage = if (is.null(pulse_burst)) NA_real_ else pulse_burst$coverage[1],
+    pulse_burst_mean_burst_loss = if (is.null(pulse_burst)) NA_real_ else pulse_burst$mean_burst_loss[1],
+    gap_mode = gap$gap_mode[1],
+    fossil_gap_burden = gap$fossil_gap_burden[1],
+    ghost_mean_ma = gap$ghost_mean_ma[1],
+    ghost_median_ma = gap$ghost_median_ma[1],
+    log_rate_sd = rate$log_rate_sd[1],
+    parent_child_jump_mean = rate$parent_child_jump_mean[1],
+    extreme_rate_frac = rate$extreme_rate_frac[1],
+    rate_autocorr_spearman = rate$rate_autocorr_spearman[1],
+    rate_irregularity = rate$rate_irregularity[1],
     dated_tree_file = out_tree,
     stringsAsFactors = FALSE
   )
@@ -686,8 +1034,42 @@ if (nrow(model_fits) > 0) {
   model_fits$tempo_rank_early <- rank(model_fits$tempo_mae_early_q75, ties.method = "min")
   model_fits$tempo_composite <- model_fits$tempo_mae_all + model_fits$tempo_mae_early_q75
   model_fits$tempo_rank_composite <- rank(model_fits$tempo_composite, ties.method = "min")
+  model_fits$rank_pulse_default <- rank(model_fits$pulse_default_selector_error, ties.method = "min", na.last = "keep")
+  model_fits$rank_pulse_burst <- rank(model_fits$pulse_burst_selector_error, ties.method = "min", na.last = "keep")
+  model_fits$rank_fossil_gap <- rank(model_fits$fossil_gap_burden, ties.method = "min", na.last = "keep")
+  model_fits$rank_rate_irregularity <- rank(model_fits$rate_irregularity, ties.method = "min", na.last = "keep")
+  model_fits$rank_mean_4families <- rowMeans(cbind(
+    model_fits$rank_pulse_default,
+    model_fits$rank_pulse_burst,
+    model_fits$rank_fossil_gap,
+    model_fits$rank_rate_irregularity
+  ), na.rm = TRUE)
+  model_fits$rank_mean_4families_rank <- rank(model_fits$rank_mean_4families, ties.method = "min", na.last = "keep")
 }
 write.csv(model_fits, model_fits_file, row.names = FALSE)
+
+postfit_metrics <- if (nrow(model_fits) > 0) {
+  data.frame(
+    candidate = paste0("chronos_", model_fits$model),
+    model = model_fits$model,
+    dated_tree_file = model_fits$dated_tree_file,
+    pulse_default_selector_error = model_fits$pulse_default_selector_error,
+    pulse_burst_selector_error = model_fits$pulse_burst_selector_error,
+    gap_mode = model_fits$gap_mode,
+    fossil_gap_burden = model_fits$fossil_gap_burden,
+    rate_irregularity = model_fits$rate_irregularity,
+    rank_pulse_default = model_fits$rank_pulse_default,
+    rank_pulse_burst = model_fits$rank_pulse_burst,
+    rank_fossil_gap = model_fits$rank_fossil_gap,
+    rank_rate_irregularity = model_fits$rank_rate_irregularity,
+    rank_mean_4families = model_fits$rank_mean_4families,
+    rank_mean_4families_rank = model_fits$rank_mean_4families_rank,
+    stringsAsFactors = FALSE
+  )
+} else {
+  data.frame()
+}
+write.csv(postfit_metrics, postfit_metrics_file, row.names = FALSE)
 
 pick_idx <- which(thresh_grid == PLOG_CLOCK_SWITCH_THRESH)[1]
 if (!is.finite(pick_idx)) pick_idx <- 1L
@@ -698,6 +1080,7 @@ fav_by_thr <- paste(
   collapse = "; "
 )
 fav_default <- summary_row$chronos_model[1]
+lambda_default <- summary_row$chronos_lambda[1]
 if (nrow(model_fits) > 0) {
   tempo_pick_early <- model_fits[which.min(model_fits$tempo_mae_early_q75), , drop = FALSE]
   tempo_best_model_early <- tempo_pick_early$model[1]
@@ -716,45 +1099,70 @@ if (nrow(model_fits) > 0) {
   tempo_best_model_comp <- NA_character_
   tempo_best_comp <- NA_real_
 }
-
-# Objective near-tie rule:
-# If clock is within tolerance of tempo-best in both overall and early metrics,
-# prefer clock (simpler model) when fit selector already favors clock.
-clock_row <- if (nrow(model_fits)) model_fits[model_fits$model == "clock", , drop = FALSE] else data.frame()
-clock_near_tie <- FALSE
-if (nrow(clock_row) == 1 && is.finite(tempo_best_mae_all) && is.finite(tempo_best_mae_early)) {
-  d_all <- clock_row$tempo_mae_all[1] - tempo_best_mae_all
-  d_early <- clock_row$tempo_mae_early_q75[1] - tempo_best_mae_early
-  tol_all <- max(TEMPO_EQ_ABS_TOL, TEMPO_EQ_REL_TOL * tempo_best_mae_all)
-  tol_early <- max(TEMPO_EQ_ABS_TOL, TEMPO_EQ_REL_TOL * tempo_best_mae_early)
-  clock_near_tie <- (d_all <= tol_all) && (d_early <= tol_early)
+clock_near_tie <- NA
+fit_selected_lambda_line <- if (is.finite(lambda_default)) {
+  paste0("Within the fit-selected model (", fav_default, "), the selected lambda is ", format(lambda_default, digits = 6), ".")
+} else {
+  paste0("Within the fit-selected model (", fav_default, "), the selected lambda is not finite.")
 }
+
+lambda_lines <- c("Best lambda by PHIIC within each model:")
+if (nrow(model_fits) > 0) {
+  ord_lambda <- order(match(model_fits$model, CHRONOS_MODELS))
+  mf_lambda <- model_fits[ord_lambda, , drop = FALSE]
+  for (i in seq_len(nrow(mf_lambda))) {
+    lambda_lines <- c(
+      lambda_lines,
+      paste0(
+        " - ", mf_lambda$model[i],
+        ": lambda=", format(mf_lambda$best_phiic_lambda[i], digits = 6),
+        ifelse(is.finite(mf_lambda$best_phiic_nb_rate_cat[i]),
+               paste0(" | nb_rate_cat=", mf_lambda$best_phiic_nb_rate_cat[i]), ""),
+        " | PHIIC=", format(mf_lambda$best_phiic[i], digits = 8),
+        " | ploglik=", format(mf_lambda$ploglik_at_best_phiic[i], digits = 8)
+      )
+    )
+  }
+}
+
+postfit_best_default <- if (nrow(postfit_metrics)) postfit_metrics$candidate[which.min(postfit_metrics$pulse_default_selector_error)] else NA_character_
+postfit_best_burst <- if (nrow(postfit_metrics)) postfit_metrics$candidate[which.min(postfit_metrics$pulse_burst_selector_error)] else NA_character_
+postfit_best_gap <- if (nrow(postfit_metrics)) postfit_metrics$candidate[which.min(postfit_metrics$fossil_gap_burden)] else NA_character_
+postfit_best_rate <- if (nrow(postfit_metrics)) postfit_metrics$candidate[which.min(postfit_metrics$rate_irregularity)] else NA_character_
+postfit_best_overall <- if (nrow(postfit_metrics)) postfit_metrics$candidate[which.min(postfit_metrics$rank_mean_4families)] else NA_character_
+postfit_gap_mode <- if (nrow(postfit_metrics)) unique(postfit_metrics$gap_mode) else NA_character_
 
 recommended_model <- fav_default
-recommendation_reason <- "fit_selector"
-if (identical(fav_default, "clock") && clock_near_tie) {
-  recommended_model <- "clock"
-  recommendation_reason <- "fit_selector_plus_parsimony_near_tie_with_tempo_best"
-} else if (!identical(fav_default, tempo_best_model_comp) && is.finite(tempo_best_comp)) {
-  recommendation_reason <- "fit_selector_differs_from_tempo_composite_best"
+recommendation_reason <- if (isTRUE(!is.na(postfit_best_overall) && identical(paste0("chronos_", fav_default), postfit_best_overall))) {
+  "fit_and_postfit_agree"
+} else {
+  "fit_and_postfit_differ_report_both"
 }
 
-tempo_table_lines <- c("Per-model tempo comparison (lower is better):")
-if (nrow(model_fits) > 0) {
-  ord <- order(model_fits$tempo_rank_composite, model_fits$tempo_composite)
-  mf <- model_fits[ord, ]
-  for (i in seq_len(nrow(mf))) {
-    tempo_table_lines <- c(
-      tempo_table_lines,
+postfit_lines <- c(
+  "Leaders by post-fit metric family (lower is better):",
+  paste0(" - pulse preservation (default): ", postfit_best_default),
+  paste0(" - pulse preservation (burst): ", postfit_best_burst),
+  paste0(" - gap burden (", postfit_gap_mode, "): ", postfit_best_gap),
+  paste0(" - rate plausibility: ", postfit_best_rate),
+  paste0(" - overall mean rank across the four post-fit components: ", postfit_best_overall),
+  "",
+  "Per-model post-fit comparison (lower is better):"
+)
+if (nrow(postfit_metrics) > 0) {
+  ord_postfit <- order(postfit_metrics$rank_mean_4families_rank, postfit_metrics$rank_mean_4families)
+  pf <- postfit_metrics[ord_postfit, , drop = FALSE]
+  for (i in seq_len(nrow(pf))) {
+    postfit_lines <- c(
+      postfit_lines,
       paste0(
-        mf$model[i],
-        " | mae_all=", format(mf$tempo_mae_all[i], digits = 7),
-        " (d=", format(mf$tempo_delta_all_to_best[i], digits = 6), ")",
-        " | mae_early_q75=", format(mf$tempo_mae_early_q75[i], digits = 7),
-        " (d=", format(mf$tempo_delta_early_to_best[i], digits = 6), ")",
-        " | composite=", format(mf$tempo_composite[i], digits = 7),
-        " | ranks(all/early/comp)=",
-        mf$tempo_rank_all[i], "/", mf$tempo_rank_early[i], "/", mf$tempo_rank_composite[i]
+        " - ", pf$candidate[i],
+        " | pulse_default=", format(pf$pulse_default_selector_error[i], digits = 6),
+        " | pulse_burst=", format(pf$pulse_burst_selector_error[i], digits = 6),
+        " | gap=", format(pf$fossil_gap_burden[i], digits = 6),
+        " | rate=", format(pf$rate_irregularity[i], digits = 6),
+        " | mean_rank=", format(pf$rank_mean_4families[i], digits = 4),
+        " (rank ", pf$rank_mean_4families_rank[i], ")"
       )
     )
   }
@@ -767,6 +1175,7 @@ interp <- c(
     paste0("Full-tree mode was used: all tuning and final dating ran on ", Ntip(target_tree), " tips.")
   },
   "",
+  "Clock fitting",
   paste0("The fit selector (default threshold = ", PLOG_CLOCK_SWITCH_THRESH, ") favors the ", fav_default, " model."),
   if (nrow(summary_sensitivity) >= 2 &&
       !is.na(summary_sensitivity$chronos_model[summary_sensitivity$plog_clock_switch_thresh == 1][1]) &&
@@ -776,55 +1185,23 @@ interp <- c(
     paste0("Using threshold 1 and threshold 2, the favored model is still ",
            summary_sensitivity$chronos_model[summary_sensitivity$plog_clock_switch_thresh == 1][1], ".")
   } else {
-    paste0("Using threshold 1 and threshold 2, favored models are: ",
-           fav_by_thr, ".")
+    paste0("Using threshold 1 and threshold 2, favored models are: ", fav_by_thr, ".")
   },
   "",
-  paste0("The lowest branching-tempo error (MAE) is given by the ", tempo_best_model_comp, " model:"),
-  paste0(" - Overall MAE = ", format(tempo_best_mae_all, digits = 6)),
-  paste0(" - Early-tempo MAE (early_q75) = ", format(tempo_best_mae_early, digits = 6)),
-  paste0(" - Composite MAE = ", format(tempo_best_comp, digits = 6)),
+  "Lambda tuning",
+  fit_selected_lambda_line,
+  lambda_lines,
   "",
-  "Model comparison (lower is better):",
-  ""
-)
-if (nrow(model_fits) > 0) {
-  ord2 <- order(model_fits$tempo_rank_composite, model_fits$tempo_composite)
-  mf2 <- model_fits[ord2, ]
-  for (i in seq_len(nrow(mf2))) {
-    interp <- c(
-      interp,
-      paste0(tools::toTitleCase(mf2$model[i]), ":"),
-      paste0("mae_all = ", format(mf2$tempo_mae_all[i], digits = 7),
-             "; mae_early_q75 = ", format(mf2$tempo_mae_early_q75[i], digits = 7),
-             "; composite = ", format(mf2$tempo_composite[i], digits = 7),
-             "; ranks = ", mf2$tempo_rank_all[i], " / ", mf2$tempo_rank_early[i], " / ", mf2$tempo_rank_composite[i]),
-      if (i == 1) "" else paste0(
-        "difference vs best -> all: ", format(mf2$tempo_delta_all_to_best[i], digits = 6),
-        "; early_q75: ", format(mf2$tempo_delta_early_to_best[i], digits = 6)
-      ),
-      ""
-    )
-  }
-}
-interp <- c(
-  interp,
-  paste0("Near-tie tolerance was abs = ", TEMPO_EQ_ABS_TOL, " and rel = ", TEMPO_EQ_REL_TOL, "."),
-  paste0("The clock model is considered a near-tie with the tempo-best model (overall + early): ", clock_near_tie, "."),
+  "Post-fit evaluation",
+  "This layer is separate from clock fitting and lambda tuning. It compares the resulting chronograms under pulse preservation, gap burden, and rate plausibility.",
+  postfit_lines,
   "",
-  paste0("Recommended model: ", recommended_model, " (",
-         if (recommendation_reason == "fit_selector_plus_parsimony_near_tie_with_tempo_best") {
-           "fit selector + parsimony, near-tie with tempo-best"
-         } else if (recommendation_reason == "fit_selector_differs_from_tempo_composite_best") {
-           "fit selector differs from tempo composite best"
-         } else {
-           "fit selector"
-         }, ")."),
-  "",
-  paste0("In short, ", tempo_best_model_comp,
-         " has the lowest tempo error, but the difference from clock is extremely small, and ",
-         fav_default, " is preferred under the selection criteria. ",
-         "However, the final choice should depend on which criterion better captures the evolutionary history of your group.")
+  paste0(
+    "In short: clock fitting favors ", fav_default,
+    ". Post-fit evaluation favors ", postfit_best_overall,
+    " overall, while ", postfit_best_rate,
+    " is best on rate plausibility. Because fit and post-fit do not fully agree here, report both layers explicitly rather than collapsing them into a single claim."
+  )
 )
 writeLines(interp, interpretation_file)
 
@@ -842,6 +1219,13 @@ summary_row$tempo_eq_abs_tol <- TEMPO_EQ_ABS_TOL
 summary_row$tempo_eq_rel_tol <- TEMPO_EQ_REL_TOL
 summary_row$recommended_model <- recommended_model
 summary_row$recommendation_reason <- recommendation_reason
+summary_row$postfit_metrics_file <- postfit_metrics_file
+summary_row$postfit_best_pulse_default <- postfit_best_default
+summary_row$postfit_best_pulse_burst <- postfit_best_burst
+summary_row$postfit_best_gap_burden <- postfit_best_gap
+summary_row$postfit_best_rate_plausibility <- postfit_best_rate
+summary_row$postfit_best_overall <- postfit_best_overall
+summary_row$postfit_gap_mode <- postfit_gap_mode
 summary_row$interpretation_file <- interpretation_file
 summary_row$n_tips_original <- n_tips_original
 summary_row$subset_mode <- subset_mode_applied
@@ -867,7 +1251,7 @@ saveRDS(list(summary = summary_row, summary_sensitivity = summary_sensitivity, m
 
 # Copy key deliverables into a compact main_files folder.
 main_copy <- c(
-  cal_csv_file, cal_csv_file_full, model_fits_file, interpretation_file, subset_tip_file, phylogram_used_file,
+  cal_csv_file, cal_csv_file_full, model_fits_file, postfit_metrics_file, interpretation_file, subset_tip_file, phylogram_used_file,
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelclock.tre")),
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelcorrelated.tre")),
   file.path(TREES_DIR, paste0(safe_id, "_chronos_dated_modelrelaxed.tre")),
@@ -882,5 +1266,6 @@ msg("Selected default threshold row: ", summary_row$plog_clock_switch_thresh,
     " | lambda=", summary_row$chronos_lambda,
     " | score=", format(summary_row$chronos_fit_score, digits = 6))
 msg("Saved: ", model_fits_file)
+msg("Saved: ", postfit_metrics_file)
 msg("Saved: ", interpretation_file)
 msg("Saved: ", rds_file)

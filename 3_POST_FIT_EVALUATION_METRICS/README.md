@@ -1,17 +1,12 @@
 # Post-Fit Evaluation Metrics
 
-Terap example output.
+Terapontoid example output.
 
-This page is about one question: after `clock fitting` and `lambda tuning` are finished, which dated tree looks best in the Terap example?
+This page is about one question: after `clock fitting` and `lambda tuning` are finished, which dated tree looks best in the Terapontoid example?
 
-`Model fitting` and `lambda tuning` answer one question: which chronos settings are favored by the fitting procedure. `Post-fit evaluation` answers a different question: once those dated trees have been produced, which resulting chronogram is the most biologically defensible. Using both layers helps avoid stopping at fit alone when the competing trees imply different branching rhythm, calibration slack, or rate behavior.
+`Model fitting` and `lambda tuning` answer one question: which chronos settings are favored by the fitting procedure.
 
-## Quick takeaway
-
-- `chronos_discrete` is the best overall tree in the Terap post-fit comparison
-- `chronos_clock` is a near-tie second and is the best tree for `rate plausibility`
-- `treePL` is not the top solution in this example
-- `Figure A` is only for the pulse issue; `Figure B` is the broader post-fit comparison
+`Post-fit evaluation` answers a different question: once those dated trees have been produced, which resulting chronogram is the most biologically defensible. Using both layers helps avoid stopping at fit alone when the competing trees imply different branching rhythm, calibration slack, or rate behavior.
 
 ## Three layers
 
@@ -25,13 +20,20 @@ This page is about that third layer. It uses three metric families:
 
 - `pulse preservation`: asks whether a dated tree keeps the same clustered branching bursts and quiet intervals seen in the source phylogram, rather than flattening them into evenly spaced splits. This follows the branching-time and diversification-tempo literature (Harvey et al. 1994; Pybus and Harvey 2000; Ford et al. 2009).
 
-- `gap burden`: asks how much extra unsampled history the dated tree implies relative to the calibration evidence. This is the same general idea as ghost-lineage and stratigraphic-congruence measures (Huelsenbeck 1994; Wills 1999; Pol and Norell 2001; O'Connor and Wills 2016). But minimum fossil gap should be treated with caution: fossils usually provide minimum ages, not true lineage origins, so blindly minimizing this metric can favor trees that are too young (Parham et al. 2012). In the Terap example, this behaves as point-calibration slack rather than literal fossil-gap burden.
+- `gap burden`: asks how much extra unsampled history the dated tree implies relative to the calibration evidence. This is the same general idea as ghost-lineage and stratigraphic-congruence measures (Huelsenbeck 1994; Wills 1999; Pol and Norell 2001; O'Connor and Wills 2016). But minimum fossil gap should be treated with caution: fossils usually provide minimum ages, not true lineage origins, so blindly minimizing this metric can favor trees that are too young (Parham et al. 2012). In the Terapontoid example, this behaves as point-calibration slack rather than literal fossil-gap burden.
 
 - `rate plausibility`: asks whether the implied branchwise rates are reasonably smooth and biologically defensible, or whether the chronogram requires extreme, erratic rate shifts. This follows the penalized-likelihood and relaxed-clock literature on rate heterogeneity and autocorrelation (Sanderson 2002; Drummond et al. 2006; Lepage et al. 2007; Ho 2009; Tao et al. 2019).
 
-## Terap example: fit layer vs post-fit layer
+## Terapontoid example: fit layer vs post-fit layer
 
 Fit and post-fit point in a similar direction here, but not in exactly the same way. `clock` has the best `PHIIC` in the fit summary. `discrete` has the best penalized log-likelihood and the best overall post-fit rank. So this is not a case where one model wins everything. It is a case where `clock` and `discrete` are the two strongest chronos candidates, but for different reasons.
+
+## Quick takeaway
+
+- `chronos_discrete` is the best overall tree in the Terapontoid post-fit comparison
+- `chronos_clock` is a near-tie second and is the best tree for `rate plausibility`
+- `treePL` is not the top solution in this example
+- `Figure A` is only for the pulse issue; `Figure B` is the broader post-fit comparison
 
 ## Figure A: Pulse-layer tree-shape comparison among bundled chronos trees
 
@@ -41,7 +43,7 @@ This figure is useful because it shows the pulse layer directly on the bundled `
 
 ## Ranked post-fit results (lower is better)
 
-In this Terap example, `gap burden` behaves as `point-calibration slack`, not as fossil-minimum ghost-lineage burden, because the comparison uses point calibrations.
+In this Terapontoid example, `gap burden` behaves as `point-calibration slack`, not as fossil-minimum ghost-lineage burden, because the comparison uses point calibrations.
 
 | candidate | pulse preservation (default) | pulse preservation (burst) | gap burden | rate plausibility | overall mean rank |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -67,7 +69,7 @@ Interpretation for this example:
 
 ## Practical decision rule
 
-For the Terap example:
+For the Terapontoid example:
 
 1. If you want one overall post-fit winner, choose `chronos_discrete`.
 2. If you want the best implied rate behavior, choose `chronos_clock`.

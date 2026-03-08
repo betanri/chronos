@@ -11,7 +11,7 @@ I compared **treePL** and **chronos** under the same topology, calibration, and 
 
 ## Three layers to keep separate
 
-This project now treats three things as distinct:
+This pipeline treats three things as distinct:
 
 1. `clock fitting`
    - choosing among chronos clock models such as `clock`, `correlated`, `relaxed`, and `discrete`
@@ -100,7 +100,7 @@ These recovery results are the caveat: chronos delivered better age accuracy tha
 
 ## Post-fit evaluation metrics
 
-The benchmark was originally centered on MAE and failure rate. It should still be read that way first. But the post-fit evaluation layer adds three complementary metrics that help interpret method behavior beyond raw dating error:
+The benchmark is centered on MAE and failure rate, and it should still be read that way first. But the post-fit evaluation layer adds three complementary metrics that help interpret method behavior beyond raw dating error:
 
 - `pulse preservation`
   - asks whether the dated tree keeps the same diversification rhythm as the reference tree

@@ -30,6 +30,8 @@ The pipeline is easiest to understand if these three layers are kept separate.
 
 ### 3. Post-fit evaluation metrics
 
+See [Section 3: Post-Fit Evaluation Metrics](../3_POST_FIT_EVALUATION_METRICS/README.md).
+
 - evaluates the dated trees that come out of fitting and tuning
 - does not replace clock fitting or lambda tuning
 - asks whether the resulting chronograms look biologically defensible under three complementary metrics:
@@ -47,8 +49,8 @@ Given a target phylogram, the script:
    - from a manual CSV.
 3. Optionally subsets large trees before fitting (while preserving calibration signal and tempo extremes).
 4. Fits chronos across clock models and lambda values.
-5. Applies robust model selection with threshold sensitivity (`1` and `2`) to separate clock fitting from lambda tuning decisions.
-6. Computes post-fit evaluation metrics on the resulting chronograms:
+5. Applies robust model selection with threshold sensitivity (`1` and `2`) to separate `(1) clock fitting` from `(2) lambda tuning` decisions.
+6. Computes `(3) post-fit evaluation metrics` on the resulting chronograms:
    - pulse preservation
    - gap burden
    - rate plausibility
@@ -142,8 +144,6 @@ The script evaluates and reports both:
 
 These metrics are evaluated after clock fitting and lambda tuning. They are not part of model fitting itself. They are a separate comparison layer used to judge the resulting chronograms.
 
-See [Section 3: Post-Fit Evaluation Metrics](../3_POST_FIT_EVALUATION_METRICS/README.md).
-
 The post-fit comparison layer is meant to be read through three complementary metrics.
 
 ### 1. Pulse preservation
@@ -174,8 +174,8 @@ Output folder structure:
    - compact deliverables for direct review:
      - phylogram used for dating (`*_phylogram_used.tree`)
      - one tree per model
-     - model-fit + pulse summary table (`summary_*_model_fits.csv`)
-     - pulse-preservation metric table
+     - model-fit table (`summary_*_model_fits.csv`)
+     - post-fit evaluation metric table (`summary_*_postfit_metrics.csv`)
      - interpretation text
      - subset tip list (when subset mode is enabled)
 2. `all_files/`
@@ -193,9 +193,9 @@ Notes:
 
 ## Practical Reading Of Results
 
-- If fit and pulse preservation favor the same model: strong convergence.
-- If fit favors one model but pulse preservation favors another: report both explicitly.
-- If gap burden or rate plausibility disagree with both fit and pulse preservation, treat that as biologically meaningful conflict rather than noise.
+- If clock fitting and post-fit evaluation favor the same model: strong convergence.
+- If clock fitting favors one model but the post-fit layer favors another: report both explicitly.
+- If pulse preservation, gap burden, and rate plausibility disagree within the post-fit layer, treat that as biologically meaningful conflict rather than noise.
 - Do not choose from fit alone when the dated trees imply very different branching rhythm or very different rate behavior.
 
 ## Common Issues
