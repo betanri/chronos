@@ -82,6 +82,22 @@ Chronos had strong age accuracy in this benchmark, but clock-model recovery was 
 
 That caveat is exactly why the broader comparative framework matters. In addition to MAE and failure rate, the benchmark can also be read through post-fit evaluation metrics that ask how the resulting chronograms behave biologically after model fitting and lambda tuning are finished.
 
+### Recovery by model (exact numbers)
+
+- **Overall exact recovery:** `313/720 (43.5%)`
+- **By true model:**
+  - `clock`: `179/180 (99.4%)`
+  - `correlated`: `134/180 (74.4%)`
+  - `discrete`: `0/180 (0.0%)`
+  - `relaxed`: `0/180 (0.0%)`
+- **Main misclassification pattern (from confusion matrix):**
+  - true `discrete` -> selected `correlated`: `149/180`
+  - true `relaxed` -> selected `correlated`: `119/180`
+  - true `relaxed` -> selected `clock`: `61/180`
+  - true `discrete` -> selected `clock`: `31/180`
+
+These recovery results are the caveat: chronos delivered better age accuracy than treePL overall, but model identification was uneven across clock regimes.
+
 ## Post-fit evaluation metrics
 
 The benchmark was originally centered on MAE and failure rate. It should still be read that way first. But the post-fit evaluation layer adds three complementary metrics that help interpret method behavior beyond raw dating error:
@@ -113,26 +129,12 @@ So these post-fit evaluation metrics do not overturn the original conclusion. Th
 
 They also show that the picture is not uniform across every simulated regime. treePL still does better in some specific strata:
 
-- `rate plausibility`: treePL wins in `5/6` strict-clock conditions
-- `MAE`: treePL wins in `2/6` discrete conditions
-- `tempo_composite`: treePL wins in `1/6` autocorrelated conditions
-- `rate plausibility`: treePL also wins in `1/6` autocorrelated conditions
+- `rate plausibility`, strict-clock conditions: treePL wins `5/6`, chronos wins `1/6`
+- `MAE`, discrete conditions: treePL wins `2/6`, chronos wins `4/6`
+- `tempo_composite`, autocorrelated conditions: treePL wins `1/6`, chronos wins `5/6`
+- `rate plausibility`, autocorrelated conditions: treePL wins `1/6`, chronos wins `5/6`
 
-### Recovery by model (exact numbers)
-
-- **Overall exact recovery:** `313/720 (43.5%)`
-- **By true model:**
-  - `clock`: `179/180 (99.4%)`
-  - `correlated`: `134/180 (74.4%)`
-  - `discrete`: `0/180 (0.0%)`
-  - `relaxed`: `0/180 (0.0%)`
-- **Main misclassification pattern (from confusion matrix):**
-  - true `discrete` -> selected `correlated`: `149/180`
-  - true `relaxed` -> selected `correlated`: `119/180`
-  - true `relaxed` -> selected `clock`: `61/180`
-  - true `discrete` -> selected `clock`: `31/180`
-
-These recovery results are the caveat: chronos delivered better age accuracy than treePL overall, but model identification was uneven across clock regimes.
+Outside those specific strata, chronos wins the remaining representative-condition comparisons for the post-fit metrics summarized here.
 
 ## Figures
 
@@ -160,7 +162,7 @@ This figure shows method means for the pulse-preservation and rate-plausibility 
 
 ![Post-fit results by true clock model](figures/fig8_postfit_by_clock_model.png)
 
-This figure shows the places where treePL still wins. The clearest case is `rate plausibility` under strict-clock simulations, where treePL wins `5/6` representative conditions. Smaller treePL advantages also appear for `MAE` in discrete simulations and for `tempo_composite` and `rate plausibility` in isolated autocorrelated conditions.
+This figure shows the places where treePL still wins and where chronos still wins within the same strata. The clearest case is `rate plausibility` under strict-clock simulations, where treePL wins `5/6` representative conditions and chronos wins `1/6`. Smaller treePL advantages also appear for `MAE` in discrete simulations (`2/6` treePL, `4/6` chronos) and for `tempo_composite` and `rate plausibility` in isolated autocorrelated conditions (`1/6` treePL, `5/6` chronos).
 
 ## Practical interpretation
 
