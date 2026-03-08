@@ -4,6 +4,8 @@ Terap example output.
 
 This page is about one question: after `clock fitting` and `lambda tuning` are finished, which dated tree looks best in the Terap example?
 
+`Model fitting` and `lambda tuning` answer one question: which chronos settings are favored by the fitting procedure. `Post-fit evaluation` answers a different question: once those dated trees have been produced, which resulting chronogram is the most biologically defensible. Using both layers helps avoid stopping at fit alone when the competing trees imply different branching rhythm, calibration slack, or rate behavior.
+
 ## Quick takeaway
 
 - `chronos_discrete` is the best overall tree in the Terap post-fit comparison
