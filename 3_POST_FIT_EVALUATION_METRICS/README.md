@@ -18,7 +18,7 @@ The pipeline keeps three layers separate:
 
 This page is about that third layer. It uses three metric families:
 
-- `pulse preservation`: asks whether a dated tree keeps the same branching rhythm seen in the source phylogram. In practice, this means preserving clustered speciation bursts and quiet intervals instead of smearing them into evenly spaced splits. In this workflow, the pulse family is reported three ways: `pulse preservation (default)` is the balanced composite selector, `burst loss` is the standalone burst-flattening submetric, and `pulse preservation (burst)` is the burst-priority composite selector. This follows the branching-time and diversification-tempo literature (Harvey et al. 1994; Pybus and Harvey 2000; Ford et al. 2009).
+- `pulse preservation`: asks whether a dated tree keeps the same branching rhythm seen in the source phylogram. In practice, this means preserving clustered speciation bursts and quiet intervals instead of smearing them into evenly spaced splits. In this workflow, the pulse family is reported three ways: `burst loss` is the standalone burst-flattening submetric, `pulse preservation (burst)` is the burst-priority composite selector, and `pulse preservation (overall)` is the balanced composite selector. This follows the branching-time and diversification-tempo literature (Harvey et al. 1994; Pybus and Harvey 2000; Ford et al. 2009).
 
 - `gap burden`: asks how much extra unseen lineage history the dated tree implies relative to the calibration evidence. This is the same basic idea as ghost-lineage and stratigraphic-congruence measures (Huelsenbeck 1994; Wills 1999; Pol and Norell 2001; O'Connor and Wills 2016). Lower is usually better, but it should be interpreted carefully: fossils usually provide minimum ages, not true lineage origins, so a tree that minimizes this too aggressively can simply be too young overall (Parham et al. 2012). In the Terapontoid example, this behaves as point-calibration slack rather than literal fossil-gap burden.
 
@@ -47,13 +47,13 @@ In this Terapontoid example, `gap burden` behaves as `point-calibration slack`, 
 
 The overall mean rank below is family-balanced. The three pulse summaries are shown separately for transparency, but they are first collapsed into one pulse-family contribution. So pulse as a whole contributes one-third of the final overall rank, while `gap burden` and `rate plausibility` contribute the other two thirds.
 
-| candidate | pulse preservation (default) | burst loss | pulse preservation (burst) | gap burden | rate plausibility | overall mean rank (pulse = 1/3) |
+| candidate | burst loss | pulse preservation (burst) | pulse preservation (overall) | gap burden | rate plausibility | overall mean rank (pulse = 1/3) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `chronos_discrete` | `0.1603` | `0.1346` | `0.1462` | `0.0733` | `2.5982` | `1.44` |
-| `chronos_clock` | `0.1605` | `0.1348` | `0.1464` | `0.0736` | `2.5861` | `1.78` |
-| `chronos_correlated` | `0.1722` | `0.1158` | `0.1478` | `0.1058` | `3.4566` | `3.11` |
-| `chronos_relaxed` | `0.1949` | `0.1382` | `0.1684` | `0.1030` | `4.5535` | `4.22` |
-| `treePL` | `0.1729` | `0.1550` | `0.1604` | `0.1615` | `3.4631` | `4.44` |
+| `chronos_discrete` | `0.1346` | `0.1462` | `0.1603` | `0.0733` | `2.5982` | `1.44` |
+| `chronos_clock` | `0.1348` | `0.1464` | `0.1605` | `0.0736` | `2.5861` | `1.78` |
+| `chronos_correlated` | `0.1158` | `0.1478` | `0.1722` | `0.1058` | `3.4566` | `3.11` |
+| `chronos_relaxed` | `0.1382` | `0.1684` | `0.1949` | `0.1030` | `4.5535` | `4.22` |
+| `treePL` | `0.1550` | `0.1604` | `0.1729` | `0.1615` | `3.4631` | `4.44` |
 
 In short: `chronos_discrete` leads both pulse selector summaries and `gap burden`, `chronos_correlated` minimizes the standalone `burst_loss` submetric, and `chronos_clock` leads `rate plausibility`. When pulse is treated as one family contributing one-third of the final score, `chronos_relaxed` edges above `treePL` overall because `treePL` has the highest `gap burden`.
 

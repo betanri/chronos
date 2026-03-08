@@ -1161,9 +1161,9 @@ recommendation_reason <- if (isTRUE(!is.na(postfit_best_overall) && identical(pa
 
 postfit_lines <- c(
   "Leaders by post-fit metric family (lower is better):",
-  paste0(" - pulse preservation (default): ", postfit_best_default),
   paste0(" - burst loss: ", postfit_best_burst_loss),
   paste0(" - pulse preservation (burst): ", postfit_best_burst),
+  paste0(" - pulse preservation (overall): ", postfit_best_default),
   paste0(" - gap burden (", postfit_gap_mode, "): ", postfit_best_gap),
   paste0(" - rate plausibility: ", postfit_best_rate),
   paste0(" - overall family-balanced mean rank: ", postfit_best_overall),

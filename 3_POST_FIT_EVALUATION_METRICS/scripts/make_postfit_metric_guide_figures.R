@@ -44,9 +44,9 @@ plot_panel <- function(vals, ttl, ylab, note) {
   text(bp, vals, labels = sprintf('%.3f', vals), pos = 3, cex = 0.85)
   mtext(note, side = 1, line = 6.4, cex = 0.9)
 }
-plot_panel(d$pulse_default_selector_error, 'Pulse preservation (default)', 'Selector error', 'Lower is better')
 plot_panel(d$burst_loss, 'Burst loss', 'Burst loss', 'Lower is better')
 plot_panel(d$pulse_burst_selector_error, 'Pulse preservation (burst)', 'Selector error', 'Lower is better')
+plot_panel(d$pulse_default_selector_error, 'Pulse preservation (overall)', 'Selector error', 'Lower is better')
 plot_panel(d$fossil_gap_burden, paste0('Gap burden (', gap_label, ')'), 'Gap burden', 'Lower is better')
 plot_panel(d$rate_irregularity, 'Rate plausibility', 'Rate irregularity', 'Lower is better')
 
