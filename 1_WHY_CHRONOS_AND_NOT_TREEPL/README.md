@@ -166,10 +166,10 @@ This figure shows the places where treePL still wins and where chronos still win
 
 ## Practical interpretation
 
-- For these conditions, chronos is the better default for dating accuracy and stability.
-- The pulse-preservation and rate-plausibility metrics support the same general direction rather than reversing it.
-- treePL can still be informative, but it degrades strongly in harder regimes.
-- For empirical analyses, keep model-sensitivity reporting explicit even when chronos is used as the primary method, and report fit-based model choice together with pulse preservation, gap burden when available, and rate plausibility.
+- The post-fit evaluation layer still favors chronos overall: chronos wins all `24/24` representative-condition comparisons by `pulse_score`, `23/24` by `burst_loss` and `tempo_composite`, and `18/24` by `rate_irregularity`.
+- The strongest exception is `rate plausibility` under strict-clock simulations, where treePL wins `5/6` representative conditions. Smaller treePL advantages also occur for `MAE` in discrete simulations and for isolated autocorrelated comparisons in `tempo_composite` and `rate plausibility`.
+- `Gap burden` is not informative in this 720 benchmark because the design uses only a fixed root calibration, so the relevant post-fit evidence here is pulse preservation plus rate plausibility.
+- For empirical analyses, keep clock fitting, lambda tuning, and post-fit evaluation as separate reporting layers, and present fit-based model choice together with pulse preservation, gap burden when available, and rate plausibility.
 
 ## Data files
 
