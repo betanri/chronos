@@ -65,7 +65,7 @@ Metric-family leaders in this example:
 
 ![Pulse preservation tree panel](figures/branching_tempo_tree_panel_clean_v3.png)
 
-This figure is still useful because it shows the pulse layer directly on the bundled chronos trees. It helps explain why `discrete` and `clock` sit at the top of the pulse-preservation ranking, even though the broader post-fit comparison also includes `gap burden` and `rate plausibility`.
+This figure is useful because it shows the pulse layer directly on the bundled `chronos` trees only; `treePL` is not shown in this panel. It helps explain why `discrete` and `clock` sit at the top of the pulse-preservation ranking. But this panel is only for the pulse issue. It does not show the `gap burden` or `rate plausibility` parts of the broader post-fit comparison.
 
 ## Figure B: Post-fit comparison across metric families
 
