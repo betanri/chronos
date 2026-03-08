@@ -7,13 +7,35 @@
 This pipeline dates a phylogram with `ape::chronos` and gives you:
 
 - one chronogram per clock model (`clock`, `correlated`, `relaxed`, `discrete`)
-- an explicit comparison between:
-  - model-fit preference
-  - pulse-preservation similarity to the original phylogram
-  - gap burden against the calibration information
-  - rate plausibility relative to the source phylogram
+- a workflow that keeps three distinct layers separate:
+  - `clock fitting`
+  - `lambda tuning`
+  - `post-fit tree-comparison metrics`
 
 The goal is to help you decide which dated tree is most defensible for your biological question.
+
+## Three Distinct Layers
+
+The pipeline is easiest to understand if these three layers are kept separate.
+
+### 1. Clock fitting
+
+- compares candidate chronos clock models such as `clock`, `correlated`, `relaxed`, and `discrete`
+- uses fit statistics and selector rules to decide which clock process is preferred
+
+### 2. Lambda tuning
+
+- tunes the penalty parameter within the model search
+- affects how strongly rate changes are smoothed during chronos fitting
+
+### 3. Post-fit tree-comparison metrics
+
+- evaluates the dated trees that come out of fitting and tuning
+- does not replace clock fitting or lambda tuning
+- asks whether the resulting chronograms look biologically defensible under three complementary metrics:
+  - `pulse preservation`
+  - `gap burden`
+  - `rate plausibility`
 
 ## What The Pipeline Does
 
@@ -25,12 +47,15 @@ Given a target phylogram, the script:
    - from a manual CSV.
 3. Optionally subsets large trees before fitting (while preserving calibration signal and tempo extremes).
 4. Fits chronos across clock models and lambda values.
-5. Applies robust model selection with threshold sensitivity (`1` and `2`).
-6. Computes pulse-preservation metrics to compare chronograms against the input phylogram branching pattern.
+5. Applies robust model selection with threshold sensitivity (`1` and `2`) to separate clock fitting from lambda tuning decisions.
+6. Computes post-fit tree-comparison metrics on the resulting chronograms:
+   - pulse preservation
+   - gap burden
+   - rate plausibility
 7. Writes:
    - one tree per model
    - fit tables
-   - pulse-preservation metric table
+   - post-fit tree-comparison metric tables
    - a plain-language interpretation text file.
 
 ## Main Script
@@ -113,24 +138,15 @@ The script evaluates and reports both:
 - `PLOG_CLOCK_SWITCH_THRESH = 1` (default strict)
 - `PLOG_CLOCK_SWITCH_THRESH = 2` (stricter)
 
-## Pulse-Preservation Metric (Biology-Oriented Diagnostic)
+## Post-Fit Tree-Comparison Metrics
 
-Detailed walkthrough:
+These metrics are evaluated after clock fitting and lambda tuning. They are not part of model fitting itself. They are a separate comparison layer used to judge the resulting chronograms.
+
+Detailed walkthrough for the pulse-preservation component:
 
 - [Pulse-Preservation Metric Guide](BRANCHING_TEMPO_METRIC_GUIDE.md)
 
-This metric family asks whether a dated tree preserves clustering of branching bursts and quiet intervals rather than flattening them into an unrealistically even schedule.
-
-How the updated metric family is interpreted:
-
-1. Match internal nodes by clade identity when node-based comparisons are needed.
-2. Compare the distribution and clustering of branching events through relative time.
-3. Penalize loss of burst structure and reward preservation of diversification pulses.
-4. Read these results together with gap burden and rate plausibility rather than as a standalone winner metric.
-
-## Three Complementary Metrics
-
-The updated comparison layer is meant to be read through three complementary metrics.
+The post-fit comparison layer is meant to be read through three complementary metrics.
 
 ### 1. Pulse preservation
 

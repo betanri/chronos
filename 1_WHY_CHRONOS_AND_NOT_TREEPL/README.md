@@ -9,6 +9,19 @@ I compared **treePL** and **chronos** under the same topology, calibration, and 
 - treePL tuning: smooth in `{0.1, 1, 10}`
 - chronos tuning: model in `{clock, correlated, relaxed, discrete}`, lambda in `{0.1, 1, 10}`, robust selector
 
+## Three layers to keep separate
+
+This project now treats three things as distinct:
+
+1. `clock fitting`
+   - choosing among chronos clock models such as `clock`, `correlated`, `relaxed`, and `discrete`
+2. `lambda tuning`
+   - choosing the penalty/smoothing strength within the chronos search
+3. `post-fit tree-comparison metrics`
+   - evaluating the dated trees that come out of that fitting process
+
+That distinction matters here. The original 720 benchmark is still first and foremost a method comparison based on dating accuracy and stability. The newer pulse, gap, and rate metrics were added later as a separate post-fit evaluation layer. They do not replace clock fitting or lambda tuning, and they do not replace the original MAE benchmark. They help interpret how the resulting chronograms behave once fitting is already done.
+
 ## Simulation design (how tests were generated)
 
 - Birth-death simulation used `lambda = 1` and `mu in {0, 0.5, 0.8}`.
@@ -67,9 +80,9 @@ This means chronos is much better on age accuracy in this benchmark, but its sel
 
 Chronos had strong age accuracy in this benchmark, but clock-model recovery was imperfect (especially for true `discrete` and `relaxed` scenarios under this robust selector). This is an important caveat: good dating performance does not guarantee exact recovery of the generating clock model.
 
-That caveat is exactly why the later workflow added a broader comparative metric framework. In addition to MAE and failure rate, the benchmark can now also be read through a `pulse preservation` lens that asks whether a dated tree preserves clustered branching bursts and quiet intervals from the reference tree, plus complementary `gap burden` and `rate plausibility` metrics.
+That caveat is exactly why the later workflow added a broader comparative metric framework. In addition to MAE and failure rate, the benchmark can now also be read through post-fit tree-comparison metrics that ask how the resulting chronograms behave biologically after model fitting and lambda tuning are finished.
 
-### New metric lens added after the original benchmark
+### Post-fit tree-comparison metrics added after the original benchmark
 
 The benchmark was originally centered on MAE and failure rate. It should still be read that way first. But the later project work added three complementary metrics that help interpret method behavior beyond raw dating error:
 
@@ -80,6 +93,15 @@ The benchmark was originally centered on MAE and failure rate. It should still b
   - this is not usable in the 720 benchmark because the design uses only a fixed root calibration
 - `rate plausibility`
   - asks whether the dated tree requires extreme or erratic branchwise rate changes
+
+These are post-fit tree-comparison metrics. They are not the same thing as:
+
+- `clock fitting`
+  - selecting among chronos clock models
+- `lambda tuning`
+  - selecting the penalty value used during chronos fitting
+
+They operate one step later by comparing the resulting dated trees.
 
 For the 720 simulation outputs that were later rescored with the new framework, the interpretation remains favorable to chronos:
 
