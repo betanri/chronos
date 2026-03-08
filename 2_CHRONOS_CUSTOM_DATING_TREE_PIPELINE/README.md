@@ -142,9 +142,9 @@ The script evaluates and reports both:
 
 These metrics are evaluated after clock fitting and lambda tuning. They are not part of model fitting itself. They are a separate comparison layer used to judge the resulting chronograms.
 
-Detailed walkthrough for the pulse-preservation component:
+Detailed walkthrough for the Terap post-fit example:
 
-- [Pulse-Preservation Metric Guide](BRANCHING_TEMPO_METRIC_GUIDE.md)
+- [Post-Fit Evaluation Metrics Guide](BRANCHING_TEMPO_METRIC_GUIDE.md)
 
 The post-fit comparison layer is meant to be read through three complementary metrics.
 

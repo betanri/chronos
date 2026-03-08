@@ -1,0 +1,6 @@
+"candidate","pulse_default_selector_error","pulse_burst_selector_error","gap_mode","fossil_gap_burden","rate_irregularity","rank_pulse_default","rank_pulse_burst","rank_fossil_gap","rank_rate_irregularity","rank_mean_4families","rank_mean_4families_rank"
+"chronos_discrete",0.160337215903896,0.146221671457616,"point_calibration_slack",0.0733203823374558,2.59815731187183,1,1,1,2,1.25,1
+"chronos_clock",0.160469741112739,0.146380729357479,"point_calibration_slack",0.0735729605820195,2.5860551088971,2,2,2,1,1.75,2
+"chronos_correlated",0.172202391180201,0.147769183363101,"point_calibration_slack",0.105780133473169,3.45655339283343,3,3,4,3,3.25,3
+"treePL",0.172936504455981,0.160374912278906,"point_calibration_slack",0.161529924690649,3.4631278738243,4,4,5,4,4.25,4
+"chronos_relaxed",0.194923242490654,0.168370680371313,"point_calibration_slack",0.102954536550731,4.55353338186172,5,5,3,5,4.5,5
