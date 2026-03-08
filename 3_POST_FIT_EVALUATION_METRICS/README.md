@@ -18,7 +18,7 @@ The pipeline keeps three layers separate:
 
 This page is about that third layer. It uses three metric families:
 
-- `pulse preservation`: asks whether a dated tree keeps the same branching rhythm seen in the source phylogram. In practice, this means preserving clustered speciation bursts and quiet intervals instead of smearing them into evenly spaced splits. This follows the branching-time and diversification-tempo literature (Harvey et al. 1994; Pybus and Harvey 2000; Ford et al. 2009).
+- `pulse preservation`: asks whether a dated tree keeps the same branching rhythm seen in the source phylogram. In practice, this means preserving clustered speciation bursts and quiet intervals instead of smearing them into evenly spaced splits. In this workflow, the pulse family is reported three ways: `pulse preservation (default)` is the balanced composite selector, `burst loss` is the standalone burst-flattening submetric, and `pulse preservation (burst)` is the burst-priority composite selector. This follows the branching-time and diversification-tempo literature (Harvey et al. 1994; Pybus and Harvey 2000; Ford et al. 2009).
 
 - `gap burden`: asks how much extra unseen lineage history the dated tree implies relative to the calibration evidence. This is the same basic idea as ghost-lineage and stratigraphic-congruence measures (Huelsenbeck 1994; Wills 1999; Pol and Norell 2001; O'Connor and Wills 2016). Lower is usually better, but it should be interpreted carefully: fossils usually provide minimum ages, not true lineage origins, so a tree that minimizes this too aggressively can simply be too young overall (Parham et al. 2012). In the Terapontoid example, this behaves as point-calibration slack rather than literal fossil-gap burden.
 
@@ -44,14 +44,6 @@ This figure is useful because it shows the pulse layer directly on the bundled `
 ## Ranked post-fit results (lower is better)
 
 In this Terapontoid example, `gap burden` behaves as `point-calibration slack`, not as fossil-minimum ghost-lineage burden, because the comparison uses point calibrations.
-
-The three pulse columns are not redundant:
-
-- `pulse preservation (default)` is the balanced pulse selector. It combines event-time mismatch, burst flattening, and centroid shift into one pulse score.
-- `burst loss` is the standalone pulse-flattening submetric. It isolates how much branching burstiness has been lost relative to the source phylogram.
-- `pulse preservation (burst)` is the burst-priority pulse selector. It is still a composite score, but it upweights burst preservation more strongly than the default version.
-
-So `burst loss` is one ingredient inside the pulse framework, whereas the two `pulse preservation` columns are composite pulse selectors built from multiple subcomponents.
 
 | candidate | pulse preservation (default) | burst loss | pulse preservation (burst) | gap burden | rate plausibility | overall mean rank |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
