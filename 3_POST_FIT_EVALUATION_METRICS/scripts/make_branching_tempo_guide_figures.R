@@ -18,11 +18,11 @@ best2 <- tempo$model[1:2]
 worst2 <- tempo$model[(nrow(tempo)-1):nrow(tempo)]
 
 read_tree <- function(model) {
-  p <- file.path(out_csv, sprintf("TERAP_ML_MAIN_chronos_dated_model%s.tre", model))
+  p <- file.path(out_csv, sprintf("Terapontoid_ML_MAIN_chronos_dated_model%s.tre", model))
   read.tree(p)
 }
 
-phy <- read.tree(file.path(out_csv, "TERAP_ML_MAIN_phylogram_used.tree"))
+phy <- read.tree(file.path(out_csv, "Terapontoid_ML_MAIN_phylogram_used.tree"))
 mods <- list(
   discrete = read_tree("discrete"),
   clock = read_tree("clock"),

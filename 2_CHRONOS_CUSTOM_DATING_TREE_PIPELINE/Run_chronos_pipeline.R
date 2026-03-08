@@ -26,7 +26,7 @@ setwd("/Users/ricardobetancur/Desktop/Proxy_Misplaced/chronosPL/Terapontoid_Tree
 TARGET_TREE_FILE <- "TARGET_PHYLOGRAM_Terapontoidei_ML_MAIN.tre"
 
 # If TARGET_TREE_FILE has multiple trees, choose by name OR index.
-TARGET_TREE_NAME <- ""   # e.g., "TERAP_ASTRAL_S1" (leave "" to use TARGET_TREE_INDEX)
+TARGET_TREE_NAME <- ""   # e.g., "Terapontoid_ASTRAL_S1" (leave "" to use TARGET_TREE_INDEX)
 TARGET_TREE_INDEX <- 1L
 
 # Reference time tree for congruification (stock tree).
