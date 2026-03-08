@@ -23,9 +23,11 @@ The pipeline keeps three layers separate:
 
 This page is about that third layer. It uses three metric families:
 
-- `pulse preservation`
-- `gap burden`
-- `rate plausibility`
+- `pulse preservation`: asks whether a dated tree keeps the same clustered branching bursts and quiet intervals seen in the source phylogram, rather than flattening them into evenly spaced splits. This follows the branching-time and diversification-tempo literature (Harvey et al. 1994; Pybus and Harvey 2000; Ford et al. 2009).
+
+- `gap burden`: asks how much extra unsampled history the dated tree implies relative to the calibration evidence. This is the same general idea as ghost-lineage and stratigraphic-congruence measures (Huelsenbeck 1994; Wills 1999; Pol and Norell 2001; O'Connor and Wills 2016). But minimum fossil gap should be treated with caution: fossils usually provide minimum ages, not true lineage origins, so blindly minimizing this metric can favor trees that are too young (Parham et al. 2012). In the Terap example, this behaves as point-calibration slack rather than literal fossil-gap burden.
+
+- `rate plausibility`: asks whether the implied branchwise rates are reasonably smooth and biologically defensible, or whether the chronogram requires extreme, erratic rate shifts. This follows the penalized-likelihood and relaxed-clock literature on rate heterogeneity and autocorrelation (Sanderson 2002; Drummond et al. 2006; Lepage et al. 2007; Ho 2009; Tao et al. 2019).
 
 ## Terap example: fit layer vs post-fit layer
 
