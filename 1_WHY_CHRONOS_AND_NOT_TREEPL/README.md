@@ -17,10 +17,10 @@ This project now treats three things as distinct:
    - choosing among chronos clock models such as `clock`, `correlated`, `relaxed`, and `discrete`
 2. `lambda tuning`
    - choosing the penalty/smoothing strength within the chronos search
-3. `post-fit tree-comparison metrics`
+3. `post-fit evaluation metrics`
    - evaluating the dated trees that come out of that fitting process
 
-That distinction matters here. The original 720 benchmark is still first and foremost a method comparison based on dating accuracy and stability. The newer pulse, gap, and rate metrics were added later as a separate post-fit evaluation layer. They do not replace clock fitting or lambda tuning, and they do not replace the original MAE benchmark. They help interpret how the resulting chronograms behave once fitting is already done.
+That distinction matters here. The original 720 benchmark is still first and foremost a method comparison based on dating accuracy and stability. The pulse, gap, and rate metrics are a separate post-fit evaluation layer. They do not replace clock fitting or lambda tuning, and they do not replace the original MAE benchmark. They help interpret how the resulting chronograms behave once fitting is already done.
 
 ## Simulation design (how tests were generated)
 
@@ -80,11 +80,11 @@ This means chronos is much better on age accuracy in this benchmark, but its sel
 
 Chronos had strong age accuracy in this benchmark, but clock-model recovery was imperfect (especially for true `discrete` and `relaxed` scenarios under this robust selector). This is an important caveat: good dating performance does not guarantee exact recovery of the generating clock model.
 
-That caveat is exactly why the later workflow added a broader comparative metric framework. In addition to MAE and failure rate, the benchmark can now also be read through post-fit tree-comparison metrics that ask how the resulting chronograms behave biologically after model fitting and lambda tuning are finished.
+That caveat is exactly why the broader comparative framework matters. In addition to MAE and failure rate, the benchmark can also be read through post-fit evaluation metrics that ask how the resulting chronograms behave biologically after model fitting and lambda tuning are finished.
 
-### Post-fit tree-comparison metrics added after the original benchmark
+### Post-fit evaluation metrics
 
-The benchmark was originally centered on MAE and failure rate. It should still be read that way first. But the later project work added three complementary metrics that help interpret method behavior beyond raw dating error:
+The benchmark was originally centered on MAE and failure rate. It should still be read that way first. But the post-fit evaluation layer adds three complementary metrics that help interpret method behavior beyond raw dating error:
 
 - `pulse preservation`
   - asks whether the dated tree keeps the same diversification rhythm as the reference tree
@@ -94,7 +94,7 @@ The benchmark was originally centered on MAE and failure rate. It should still b
 - `rate plausibility`
   - asks whether the dated tree requires extreme or erratic branchwise rate changes
 
-These are post-fit tree-comparison metrics. They are not the same thing as:
+These are post-fit evaluation metrics. They are not the same thing as:
 
 - `clock fitting`
   - selecting among chronos clock models
@@ -103,13 +103,13 @@ These are post-fit tree-comparison metrics. They are not the same thing as:
 
 They operate one step later by comparing the resulting dated trees.
 
-For the 720 simulation outputs that were later rescored with the new framework, the interpretation remains favorable to chronos:
+For the 720 simulation outputs rescored under this post-fit evaluation layer, the interpretation remains favorable to chronos:
 
 - `pulse preservation`: chronos better in all 24 representative-condition comparisons by `pulse_score`, and in 23/24 by `burst_loss` and `tempo_composite`
 - `rate plausibility`: chronos better in 18/24 representative-condition comparisons by `rate_irregularity`
 - `gap burden`: not applicable by design under root-only calibration
 
-So the new metrics do not overturn the original conclusion. They reinforce it, while adding a more biologically informative view of tree shape and implied rate behavior.
+So these post-fit evaluation metrics do not overturn the original conclusion. They reinforce it, while adding a more biologically informative view of tree shape and implied rate behavior.
 
 ### Recovery by model (exact numbers)
 
@@ -141,20 +141,20 @@ These recovery results are the caveat: chronos delivered better age accuracy tha
 
 *Footnote:* This panel shows a representative subset only: `mu=0.8`, `H=0.25` across the four true clock regimes (strict, autocorrelated, independent, discrete). Other conditions (`mu=0`, `mu=0.5`, and `H=0.05`) are not shown here. Under the strict-clock simulation, heterotachy is not applied (`rates = 1`), so strict phylograms remain ultrametric even when `H=0.25`.
 
-## New metric figures
+## Post-fit evaluation figures
 
 ![Representative-condition wins by metric](figures/fig6_pulse_rate_win_counts.png)
 
-This figure summarizes the later 720 rescoring under the new framework. Pulse and rate metrics are computed on one representative tree for each of the 24 simulation conditions, whereas MAE uses all replicate values.
+This figure summarizes the 720 rescoring under the post-fit evaluation layer. Pulse and rate metrics are computed on one representative tree for each of the 24 simulation conditions, whereas MAE uses all replicate values.
 
 ![Method means under pulse and rate metrics](figures/fig7_pulse_rate_method_means.png)
 
-This figure shows method means for the new pulse-preservation and rate-plausibility summaries. Chronos has higher `pulse_score` and lower `pulse_error`, `burst_loss`, and `rate_irregularity` than treePL in these representative-tree comparisons.
+This figure shows method means for the pulse-preservation and rate-plausibility summaries. Chronos has higher `pulse_score` and lower `pulse_error`, `burst_loss`, and `rate_irregularity` than treePL in these representative-tree comparisons.
 
 ## Practical interpretation
 
 - For these conditions, chronos is the better default for dating accuracy and stability.
-- The later pulse-preservation and rate-plausibility metrics support the same general direction rather than reversing it.
+- The pulse-preservation and rate-plausibility metrics support the same general direction rather than reversing it.
 - treePL can still be informative, but it degrades strongly in harder regimes.
 - For empirical analyses, keep model-sensitivity reporting explicit even when chronos is used as the primary method, and report fit-based model choice together with pulse preservation, gap burden when available, and rate plausibility.
 

@@ -10,7 +10,7 @@ This pipeline dates a phylogram with `ape::chronos` and gives you:
 - a workflow that keeps three distinct layers separate:
   - `clock fitting`
   - `lambda tuning`
-  - `post-fit tree-comparison metrics`
+  - `post-fit evaluation metrics`
 
 The goal is to help you decide which dated tree is most defensible for your biological question.
 
@@ -28,7 +28,7 @@ The pipeline is easiest to understand if these three layers are kept separate.
 - tunes the penalty parameter within the model search
 - affects how strongly rate changes are smoothed during chronos fitting
 
-### 3. Post-fit tree-comparison metrics
+### 3. Post-fit evaluation metrics
 
 - evaluates the dated trees that come out of fitting and tuning
 - does not replace clock fitting or lambda tuning
@@ -48,14 +48,14 @@ Given a target phylogram, the script:
 3. Optionally subsets large trees before fitting (while preserving calibration signal and tempo extremes).
 4. Fits chronos across clock models and lambda values.
 5. Applies robust model selection with threshold sensitivity (`1` and `2`) to separate clock fitting from lambda tuning decisions.
-6. Computes post-fit tree-comparison metrics on the resulting chronograms:
+6. Computes post-fit evaluation metrics on the resulting chronograms:
    - pulse preservation
    - gap burden
    - rate plausibility
 7. Writes:
    - one tree per model
    - fit tables
-   - post-fit tree-comparison metric tables
+   - post-fit evaluation metric tables
    - a plain-language interpretation text file.
 
 ## Main Script
@@ -138,7 +138,7 @@ The script evaluates and reports both:
 - `PLOG_CLOCK_SWITCH_THRESH = 1` (default strict)
 - `PLOG_CLOCK_SWITCH_THRESH = 2` (stricter)
 
-## Post-Fit Tree-Comparison Metrics
+## Post-Fit Evaluation Metrics
 
 These metrics are evaluated after clock fitting and lambda tuning. They are not part of model fitting itself. They are a separate comparison layer used to judge the resulting chronograms.
 
