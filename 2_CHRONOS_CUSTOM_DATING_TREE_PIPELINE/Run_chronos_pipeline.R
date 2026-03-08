@@ -1035,9 +1035,22 @@ if (nrow(model_fits) > 0) {
   model_fits$tempo_composite <- model_fits$tempo_mae_all + model_fits$tempo_mae_early_q75
   model_fits$tempo_rank_composite <- rank(model_fits$tempo_composite, ties.method = "min")
   model_fits$rank_pulse_default <- rank(model_fits$pulse_default_selector_error, ties.method = "min", na.last = "keep")
+  model_fits$rank_burst_loss <- rank(model_fits$pulse_default_mean_burst_loss, ties.method = "min", na.last = "keep")
   model_fits$rank_pulse_burst <- rank(model_fits$pulse_burst_selector_error, ties.method = "min", na.last = "keep")
   model_fits$rank_fossil_gap <- rank(model_fits$fossil_gap_burden, ties.method = "min", na.last = "keep")
   model_fits$rank_rate_irregularity <- rank(model_fits$rate_irregularity, ties.method = "min", na.last = "keep")
+  model_fits$rank_pulse_family_mean <- rowMeans(cbind(
+    model_fits$rank_pulse_default,
+    model_fits$rank_burst_loss,
+    model_fits$rank_pulse_burst
+  ), na.rm = TRUE)
+  model_fits$rank_pulse_family <- rank(model_fits$rank_pulse_family_mean, ties.method = "min", na.last = "keep")
+  model_fits$rank_mean_3families <- rowMeans(cbind(
+    model_fits$rank_pulse_family_mean,
+    model_fits$rank_fossil_gap,
+    model_fits$rank_rate_irregularity
+  ), na.rm = TRUE)
+  model_fits$rank_mean_3families_rank <- rank(model_fits$rank_mean_3families, ties.method = "min", na.last = "keep")
   model_fits$rank_mean_4families <- rowMeans(cbind(
     model_fits$rank_pulse_default,
     model_fits$rank_pulse_burst,
@@ -1054,14 +1067,20 @@ postfit_metrics <- if (nrow(model_fits) > 0) {
     model = model_fits$model,
     dated_tree_file = model_fits$dated_tree_file,
     pulse_default_selector_error = model_fits$pulse_default_selector_error,
+    burst_loss = model_fits$pulse_default_mean_burst_loss,
     pulse_burst_selector_error = model_fits$pulse_burst_selector_error,
     gap_mode = model_fits$gap_mode,
     fossil_gap_burden = model_fits$fossil_gap_burden,
     rate_irregularity = model_fits$rate_irregularity,
     rank_pulse_default = model_fits$rank_pulse_default,
+    rank_burst_loss = model_fits$rank_burst_loss,
     rank_pulse_burst = model_fits$rank_pulse_burst,
+    rank_pulse_family_mean = model_fits$rank_pulse_family_mean,
+    rank_pulse_family = model_fits$rank_pulse_family,
     rank_fossil_gap = model_fits$rank_fossil_gap,
     rank_rate_irregularity = model_fits$rank_rate_irregularity,
+    rank_mean_3families = model_fits$rank_mean_3families,
+    rank_mean_3families_rank = model_fits$rank_mean_3families_rank,
     rank_mean_4families = model_fits$rank_mean_4families,
     rank_mean_4families_rank = model_fits$rank_mean_4families_rank,
     stringsAsFactors = FALSE
@@ -1127,9 +1146,10 @@ if (nrow(model_fits) > 0) {
 
 postfit_best_default <- if (nrow(postfit_metrics)) postfit_metrics$candidate[which.min(postfit_metrics$pulse_default_selector_error)] else NA_character_
 postfit_best_burst <- if (nrow(postfit_metrics)) postfit_metrics$candidate[which.min(postfit_metrics$pulse_burst_selector_error)] else NA_character_
+postfit_best_burst_loss <- if (nrow(postfit_metrics)) postfit_metrics$candidate[which.min(postfit_metrics$burst_loss)] else NA_character_
 postfit_best_gap <- if (nrow(postfit_metrics)) postfit_metrics$candidate[which.min(postfit_metrics$fossil_gap_burden)] else NA_character_
 postfit_best_rate <- if (nrow(postfit_metrics)) postfit_metrics$candidate[which.min(postfit_metrics$rate_irregularity)] else NA_character_
-postfit_best_overall <- if (nrow(postfit_metrics)) postfit_metrics$candidate[which.min(postfit_metrics$rank_mean_4families)] else NA_character_
+postfit_best_overall <- if (nrow(postfit_metrics)) postfit_metrics$candidate[which.min(postfit_metrics$rank_mean_3families)] else NA_character_
 postfit_gap_mode <- if (nrow(postfit_metrics)) unique(postfit_metrics$gap_mode) else NA_character_
 
 recommended_model <- fav_default
@@ -1142,15 +1162,17 @@ recommendation_reason <- if (isTRUE(!is.na(postfit_best_overall) && identical(pa
 postfit_lines <- c(
   "Leaders by post-fit metric family (lower is better):",
   paste0(" - pulse preservation (default): ", postfit_best_default),
+  paste0(" - burst loss: ", postfit_best_burst_loss),
   paste0(" - pulse preservation (burst): ", postfit_best_burst),
   paste0(" - gap burden (", postfit_gap_mode, "): ", postfit_best_gap),
   paste0(" - rate plausibility: ", postfit_best_rate),
-  paste0(" - overall mean rank across the four post-fit components: ", postfit_best_overall),
+  paste0(" - overall family-balanced mean rank: ", postfit_best_overall),
+  "   pulse family contributes one-third of this overall rank by averaging the default pulse selector, burst loss, and the burst-priority pulse selector.",
   "",
   "Per-model post-fit comparison (lower is better):"
 )
 if (nrow(postfit_metrics) > 0) {
-  ord_postfit <- order(postfit_metrics$rank_mean_4families_rank, postfit_metrics$rank_mean_4families)
+  ord_postfit <- order(postfit_metrics$rank_mean_3families_rank, postfit_metrics$rank_mean_3families)
   pf <- postfit_metrics[ord_postfit, , drop = FALSE]
   for (i in seq_len(nrow(pf))) {
     postfit_lines <- c(
@@ -1158,11 +1180,12 @@ if (nrow(postfit_metrics) > 0) {
       paste0(
         " - ", pf$candidate[i],
         " | pulse_default=", format(pf$pulse_default_selector_error[i], digits = 6),
+        " | burst_loss=", format(pf$burst_loss[i], digits = 6),
         " | pulse_burst=", format(pf$pulse_burst_selector_error[i], digits = 6),
         " | gap=", format(pf$fossil_gap_burden[i], digits = 6),
         " | rate=", format(pf$rate_irregularity[i], digits = 6),
-        " | mean_rank=", format(pf$rank_mean_4families[i], digits = 4),
-        " (rank ", pf$rank_mean_4families_rank[i], ")"
+        " | family_mean_rank=", format(pf$rank_mean_3families[i], digits = 4),
+        " (rank ", pf$rank_mean_3families_rank[i], ")"
       )
     )
   }
@@ -1221,6 +1244,7 @@ summary_row$recommended_model <- recommended_model
 summary_row$recommendation_reason <- recommendation_reason
 summary_row$postfit_metrics_file <- postfit_metrics_file
 summary_row$postfit_best_pulse_default <- postfit_best_default
+summary_row$postfit_best_burst_loss <- postfit_best_burst_loss
 summary_row$postfit_best_pulse_burst <- postfit_best_burst
 summary_row$postfit_best_gap_burden <- postfit_best_gap
 summary_row$postfit_best_rate_plausibility <- postfit_best_rate

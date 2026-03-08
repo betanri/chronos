@@ -45,27 +45,31 @@ This figure is useful because it shows the pulse layer directly on the bundled `
 
 In this Terapontoid example, `gap burden` behaves as `point-calibration slack`, not as fossil-minimum ghost-lineage burden, because the comparison uses point calibrations.
 
-| candidate | pulse preservation (default) | burst loss | pulse preservation (burst) | gap burden | rate plausibility | overall mean rank |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `chronos_discrete` | `0.1603` | `0.1346` | `0.1462` | `0.0733` | `2.5982` | `1.25` |
-| `chronos_clock` | `0.1605` | `0.1348` | `0.1464` | `0.0736` | `2.5861` | `1.75` |
-| `chronos_correlated` | `0.1722` | `0.1158` | `0.1478` | `0.1058` | `3.4566` | `3.25` |
-| `treePL` | `0.1729` | `0.1550` | `0.1604` | `0.1615` | `3.4631` | `4.25` |
-| `chronos_relaxed` | `0.1949` | `0.1382` | `0.1684` | `0.1030` | `4.5535` | `4.50` |
+The overall mean rank below is family-balanced. The three pulse summaries are shown separately for transparency, but they are first collapsed into one pulse-family contribution. So pulse as a whole contributes one-third of the final overall rank, while `gap burden` and `rate plausibility` contribute the other two thirds.
 
-In short: `chronos_discrete` leads both pulse selector summaries and `gap burden`, `chronos_correlated` minimizes the standalone `burst_loss` submetric, and `chronos_clock` leads `rate plausibility`.
+| candidate | pulse preservation (default) | burst loss | pulse preservation (burst) | gap burden | rate plausibility | overall mean rank (pulse = 1/3) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `chronos_discrete` | `0.1603` | `0.1346` | `0.1462` | `0.0733` | `2.5982` | `1.44` |
+| `chronos_clock` | `0.1605` | `0.1348` | `0.1464` | `0.0736` | `2.5861` | `1.78` |
+| `chronos_correlated` | `0.1722` | `0.1158` | `0.1478` | `0.1058` | `3.4566` | `3.11` |
+| `chronos_relaxed` | `0.1949` | `0.1382` | `0.1684` | `0.1030` | `4.5535` | `4.22` |
+| `treePL` | `0.1729` | `0.1550` | `0.1604` | `0.1615` | `3.4631` | `4.44` |
+
+In short: `chronos_discrete` leads both pulse selector summaries and `gap burden`, `chronos_correlated` minimizes the standalone `burst_loss` submetric, and `chronos_clock` leads `rate plausibility`. When pulse is treated as one family contributing one-third of the final score, `chronos_relaxed` edges above `treePL` overall because `treePL` has the highest `gap burden`.
 
 ## Figure B: Post-fit comparison across metric families
 
 ![Post-fit evaluation metric families](figures/postfit_metric_family_values.png)
 
+Figure B uses the same family-balanced rule as the table. Even though three pulse panels are shown, they do not count as three separate thirds. They are averaged into one pulse-family contribution, and that pulse family contributes one-third of the overall rank.
+
 Interpretation for this example:
 
 - `chronos_discrete` is the overall post-fit winner because it leads both pulse summaries and gap burden while staying near-best on rate plausibility
 - `chronos_clock` is essentially tied at the top on pulse preservation, nearly tied on gap burden, and is the best tree on rate plausibility
-- `chronos_correlated` sits in the middle
-- `treePL` beats `chronos_relaxed` on both pulse summaries and on rate plausibility, but it has the highest gap burden in this comparison
-- `chronos_relaxed` is worst overall because it combines the weakest pulse preservation with the highest rate irregularity
+- `chronos_correlated` sits in the middle and is the best tree on standalone `burst_loss`
+- `treePL` beats `chronos_relaxed` on the two pulse selectors and on rate plausibility, but it has the highest gap burden in this comparison
+- under the family-balanced overall rank, `treePL` drops below `chronos_relaxed` because pulse contributes only one-third of the final score
 
 ## Practical decision rule
 
@@ -73,8 +77,9 @@ For the Terapontoid example:
 
 1. If you want one overall post-fit winner, choose `chronos_discrete`.
 2. If you want the best implied rate behavior, choose `chronos_clock`.
-3. If fit-based selection and post-fit evaluation point to different trees, report both explicitly rather than collapsing them into one claim.
-4. In this example, `treePL` is not the leading solution under the post-fit layer.
+3. If you care specifically about the standalone burst-flattening penalty, `chronos_correlated` minimizes `burst_loss`.
+4. If fit-based selection and post-fit evaluation point to different trees, report both explicitly rather than collapsing them into one claim.
+5. In this example, `treePL` is not the leading solution under the post-fit layer, and under family-balanced ranking it places last.
 
 ## Files behind this example
 
