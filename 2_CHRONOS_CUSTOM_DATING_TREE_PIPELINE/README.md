@@ -142,9 +142,10 @@ The script evaluates and reports both:
 
 These metrics are evaluated after clock fitting and lambda tuning. They are not part of model fitting itself. They are a separate comparison layer used to judge the resulting chronograms.
 
-Separate section for the Terap post-fit example:
+This comparison layer is now organized as its own top-level section in the repository:
 
-- [Post-Fit Evaluation Metrics](../3_POST_FIT_EVALUATION_METRICS/README.md)
+- `3_POST_FIT_EVALUATION_METRICS`
+- [Section 3: Post-Fit Evaluation Metrics](../3_POST_FIT_EVALUATION_METRICS/README.md)
 
 The post-fit comparison layer is meant to be read through three complementary metrics.
 
