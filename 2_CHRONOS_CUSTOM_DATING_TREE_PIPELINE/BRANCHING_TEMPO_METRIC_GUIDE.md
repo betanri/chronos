@@ -61,7 +61,13 @@ Metric-family leaders in this example:
 - `gap burden`: `chronos_discrete`
 - `rate plausibility`: `chronos_clock`
 
-## Figure A: Post-fit comparison across metric families
+## Figure A: Pulse-layer tree-shape comparison among bundled chronos trees
+
+![Pulse preservation tree panel](figures/branching_tempo_tree_panel_clean_v3.png)
+
+This figure is still useful because it shows the pulse layer directly on the bundled chronos trees. It helps explain why `discrete` and `clock` sit at the top of the pulse-preservation ranking, even though the broader post-fit comparison also includes `gap burden` and `rate plausibility`.
+
+## Figure B: Post-fit comparison across metric families
 
 ![Post-fit evaluation metric families](figures/postfit_metric_family_values.png)
 
@@ -78,12 +84,6 @@ Interpretation for this example:
 - `chronos_correlated` sits in the middle
 - `treePL` beats `chronos_relaxed` on both pulse summaries and on rate plausibility, but it has the highest gap burden in this comparison
 - `chronos_relaxed` is worst overall because it combines the weakest pulse preservation with the highest rate irregularity
-
-## Figure B: Pulse-layer tree-shape comparison among bundled chronos trees
-
-![Pulse preservation tree panel](figures/branching_tempo_tree_panel_clean_v3.png)
-
-This figure is still useful because it shows the pulse layer directly on the bundled chronos trees. It helps explain why `discrete` and `clock` sit at the top of the pulse-preservation ranking, even though the broader post-fit comparison also includes `gap burden` and `rate plausibility`.
 
 ## Practical decision rule
 
