@@ -1,6 +1,6 @@
 # Chronos
 
-This repository is organized into two main sections:
+This repository is organized into three main sections:
 
 ## 1) [WHY CHRONOS AND NOT TREEPL](1_WHY_CHRONOS_AND_NOT_TREEPL/README.md)
 
@@ -8,4 +8,8 @@ A 720-run benchmark showing, in the same simulated conditions, that chronos had 
 
 ## 2) [CHRONOS -- CUSTOM DATING TREE PIPELINE](2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/README.md)
 
-This tab is the workflow: a practical wrapper around `ape::chronos` that automates things ape alone does not give you out-of-the-box in one run. It keeps three layers distinct: clock-model fitting, lambda tuning, and post-fit evaluation metrics. Those post-fit metrics are not part of clock fitting or lambda tuning; they are a separate evaluation layer applied to the resulting chronograms.
+This tab is the workflow: a practical wrapper around `ape::chronos` that automates things ape alone does not give you out-of-the-box in one run. It handles calibration setup, clock-model fitting, lambda tuning, and the production of dated-tree outputs.
+
+## 3) [POST-FIT EVALUATION METRICS](3_POST_FIT_EVALUATION_METRICS/README.md)
+
+This tab is the comparison layer applied after fitting is finished. It focuses on how the resulting chronograms behave biologically under `pulse preservation`, `gap burden`, and `rate plausibility`, using the Terap example as the worked case.

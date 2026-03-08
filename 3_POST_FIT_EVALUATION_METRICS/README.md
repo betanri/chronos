@@ -1,4 +1,6 @@
-# Post-Fit Evaluation Metrics Guide (Terap Example Output)
+# Post-Fit Evaluation Metrics
+
+Terap example output.
 
 This page is about one question: after `clock fitting` and `lambda tuning` are finished, which dated tree looks best in the Terap example?
 
@@ -76,16 +78,15 @@ For the Terap example:
 
 ## Files behind this example
 
-All bundled example files are under:
+The example is split across the pipeline section and this post-fit section.
 
-- `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/OUTPUT_DEMO/`
+Pipeline example outputs used here:
 
-Most important files:
+- `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/OUTPUT_DEMO/summary_terap_empirical_model_fits.csv`
+- `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/OUTPUT_DEMO/summary_terap_empirical_postfit_metrics.csv`
+- the four bundled `chronos` trees in `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/OUTPUT_DEMO/`
 
-- `summary_terap_empirical_model_fits.csv`
-- `summary_terap_empirical_postfit_metrics.csv`
-- the four bundled `chronos` trees for `clock`, `correlated`, `relaxed`, and `discrete`
+Post-fit figures and scripts for this section:
 
-Supporting figure script:
-
-- `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/scripts/make_postfit_metric_guide_figures.R`
+- `3_POST_FIT_EVALUATION_METRICS/figures/`
+- `3_POST_FIT_EVALUATION_METRICS/scripts/`

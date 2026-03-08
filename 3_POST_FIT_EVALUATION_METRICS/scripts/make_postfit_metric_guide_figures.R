@@ -7,10 +7,11 @@ if (length(file_arg)) {
 }
 base_dir <- normalizePath(file.path(script_dir, '..'), winslash = '/', mustWork = TRUE)
 out_fig <- file.path(base_dir, 'figures')
-out_csv <- file.path(base_dir, 'EXAMPLE_FILES', 'OUTPUT_DEMO')
+pipeline_demo_dir <- normalizePath(file.path(base_dir, '..', '2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE', 'EXAMPLE_FILES', 'OUTPUT_DEMO'),
+                                   winslash = '/', mustWork = TRUE)
 dir.create(out_fig, showWarnings = FALSE, recursive = TRUE)
 
-infile <- file.path(out_csv, 'summary_terap_empirical_postfit_metrics.csv')
+infile <- file.path(pipeline_demo_dir, 'summary_terap_empirical_postfit_metrics.csv')
 if (!file.exists(infile)) stop('Missing input file: ', infile)
 d <- read.csv(infile, stringsAsFactors = FALSE)
 ord <- c('chronos_discrete', 'chronos_clock', 'chronos_correlated', 'treePL', 'chronos_relaxed')

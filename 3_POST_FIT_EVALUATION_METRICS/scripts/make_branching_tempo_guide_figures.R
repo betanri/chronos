@@ -1,8 +1,16 @@
 suppressPackageStartupMessages({ library(ape) })
 
-base_dir <- "2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE"
+args <- commandArgs(trailingOnly = FALSE)
+file_arg <- grep('^--file=', args, value = TRUE)
+if (length(file_arg)) {
+  script_dir <- dirname(normalizePath(sub('^--file=', '', file_arg[1]), winslash = '/', mustWork = TRUE))
+} else {
+  script_dir <- normalizePath(getwd(), winslash = '/', mustWork = TRUE)
+}
+base_dir <- normalizePath(file.path(script_dir, '..'), winslash = '/', mustWork = TRUE)
 out_fig <- file.path(base_dir, "figures")
-out_csv <- file.path(base_dir, "EXAMPLE_FILES", "OUTPUT_DEMO")
+out_csv <- normalizePath(file.path(base_dir, "..", "2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE", "EXAMPLE_FILES", "OUTPUT_DEMO"),
+                         winslash = "/", mustWork = TRUE)
 
 tempo <- read.csv(file.path(out_csv, "summary_terap_empirical_model_fits.csv"), stringsAsFactors = FALSE)
 tempo <- tempo[order(tempo$tempo_composite, tempo$tempo_mae_all), ]
