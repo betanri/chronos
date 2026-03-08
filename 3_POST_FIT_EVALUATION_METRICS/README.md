@@ -57,12 +57,6 @@ In short: `chronos_discrete` leads both pulse summaries and `gap burden`, while 
 
 ![Post-fit evaluation metric families](figures/postfit_metric_family_values.png)
 
-How to read:
-
-- each panel is one post-fit metric family
-- lower values are better in every panel
-- the last panel summarizes the mean rank across the four ranking components
-
 Interpretation for this example:
 
 - `chronos_discrete` is the overall post-fit winner because it leads both pulse summaries and gap burden while staying near-best on rate plausibility
