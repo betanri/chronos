@@ -43,7 +43,15 @@ This figure is useful because it shows the pulse layer directly on the bundled `
 
 ## Ranked post-fit results (lower is better)
 
-In this Terapontoid example, `gap burden` behaves as `point-calibration slack`, not as fossil-minimum ghost-lineage burden, because the comparison uses point calibrations. The pulse columns below are the composite pulse selectors. `burst_loss` is shown explicitly as the standalone pulse-flattening submetric.
+In this Terapontoid example, `gap burden` behaves as `point-calibration slack`, not as fossil-minimum ghost-lineage burden, because the comparison uses point calibrations.
+
+The three pulse columns are not redundant:
+
+- `pulse preservation (default)` is the balanced pulse selector. It combines event-time mismatch, burst flattening, and centroid shift into one pulse score.
+- `burst loss` is the standalone pulse-flattening submetric. It isolates how much branching burstiness has been lost relative to the source phylogram.
+- `pulse preservation (burst)` is the burst-priority pulse selector. It is still a composite score, but it upweights burst preservation more strongly than the default version.
+
+So `burst loss` is one ingredient inside the pulse framework, whereas the two `pulse preservation` columns are composite pulse selectors built from multiple subcomponents.
 
 | candidate | pulse preservation (default) | burst loss | pulse preservation (burst) | gap burden | rate plausibility | overall mean rank |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
