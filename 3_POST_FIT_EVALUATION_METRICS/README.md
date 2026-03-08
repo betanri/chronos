@@ -33,6 +33,12 @@ This page is about that third layer. It uses three metric families:
 
 Fit and post-fit point in a similar direction here, but not in exactly the same way. `clock` has the best `PHIIC` in the fit summary. `discrete` has the best penalized log-likelihood and the best overall post-fit rank. So this is not a case where one model wins everything. It is a case where `clock` and `discrete` are the two strongest chronos candidates, but for different reasons.
 
+## Figure A: Pulse-layer tree-shape comparison among bundled chronos trees
+
+![Pulse preservation tree panel](figures/branching_tempo_tree_panel_clean_v3.png)
+
+This figure is useful because it shows the pulse layer directly on the bundled `chronos` trees only; `treePL` is not shown in this panel. It helps explain why `discrete` and `clock` sit at the top of the pulse-preservation ranking. But this panel is only for the pulse issue. It does not show the `gap burden` or `rate plausibility` parts of the broader post-fit comparison.
+
 ## Ranked post-fit results (lower is better)
 
 In this Terap example, `gap burden` behaves as `point-calibration slack`, not as fossil-minimum ghost-lineage burden, because the comparison uses point calibrations.
@@ -46,12 +52,6 @@ In this Terap example, `gap burden` behaves as `point-calibration slack`, not as
 | `chronos_relaxed` | `0.1949` | `0.1684` | `0.1030` | `4.5535` | `4.50` |
 
 In short: `chronos_discrete` leads both pulse summaries and `gap burden`, while `chronos_clock` leads `rate plausibility`.
-
-## Figure A: Pulse-layer tree-shape comparison among bundled chronos trees
-
-![Pulse preservation tree panel](figures/branching_tempo_tree_panel_clean_v3.png)
-
-This figure is useful because it shows the pulse layer directly on the bundled `chronos` trees only; `treePL` is not shown in this panel. It helps explain why `discrete` and `clock` sit at the top of the pulse-preservation ranking. But this panel is only for the pulse issue. It does not show the `gap burden` or `rate plausibility` parts of the broader post-fit comparison.
 
 ## Figure B: Post-fit comparison across metric families
 
