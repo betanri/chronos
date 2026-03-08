@@ -1,46 +1,31 @@
 # Post-Fit Evaluation Metrics Guide (Terap Example Output)
 
-This page shows how to read the Terap example after `clock fitting` and `lambda tuning` are finished. The goal here is to compare the dated trees that come out of the pipeline, not to rerun model fitting.
+This page is about one question: after `clock fitting` and `lambda tuning` are finished, which dated tree looks best in the Terap example?
 
-## What this guide adds
+## Quick takeaway
+
+- `chronos_discrete` is the best overall tree in the Terap post-fit comparison
+- `chronos_clock` is a near-tie second and is the best tree for `rate plausibility`
+- `treePL` is not the top solution in this example
+- `Figure A` is only for the pulse issue; `Figure B` is the broader post-fit comparison
+
+## Three layers
 
 The pipeline keeps three layers separate:
 
-1. `clock fitting`: which chronos clock process is favored by the fit statistics
-2. `lambda tuning`: which smoothing strength is favored within the chosen model search
-3. `post-fit evaluation`: how the resulting dated trees behave biologically after fitting is done
+- `clock fitting`: which chronos model is preferred by the fit statistics
+- `lambda tuning`: which smoothing strength is preferred within the model search
+- `post-fit evaluation`: which final dated tree looks best biologically
 
-That third layer is the focus here. It uses three complementary metric families:
+This page is about that third layer. It uses three metric families:
 
-- `pulse preservation`: does the chronogram keep the branching bursts and quiet intervals seen in the source phylogram?
-- `gap burden`: how much slack does the dated tree imply relative to the calibration information?
-- `rate plausibility`: do the implied branchwise rate changes stay within a biologically defensible range?
-
-## Example files used
-
-- Input phylogram: `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/OUTPUT_DEMO/TERAP_ML_MAIN_phylogram_used.tree`
-- Bundled chronos trees:
-  - `.../TERAP_ML_MAIN_chronos_dated_modelclock.tre`
-  - `.../TERAP_ML_MAIN_chronos_dated_modelcorrelated.tre`
-  - `.../TERAP_ML_MAIN_chronos_dated_modelrelaxed.tre`
-  - `.../TERAP_ML_MAIN_chronos_dated_modeldiscrete.tre`
-- Fit summary table:
-  - `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/OUTPUT_DEMO/summary_terap_empirical_model_fits.csv`
-- Post-fit summary table:
-  - `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/OUTPUT_DEMO/summary_terap_empirical_postfit_metrics.csv`
-
-The post-fit summary table includes the same four chronos trees plus the `treePL` comparator used in the Terap comparison.
+- `pulse preservation`
+- `gap burden`
+- `rate plausibility`
 
 ## Terap example: fit layer vs post-fit layer
 
-The fit layer and the post-fit layer are close here, but they are not identical.
-
-- `clock` has the best `PHIIC` in the bundled fit summary
-- `discrete` has the best penalized log-likelihood and the best pulse-focused composite from the older output
-- in the post-fit comparison, `chronos_discrete` is the best overall tree across the four ranking components used here
-- `chronos_clock` is a near-tie second and is the best tree for `rate plausibility`
-
-So this example is not a case where one model dominates every decision layer. It is a case where `clock` and `discrete` stay at the top, but for partly different reasons.
+Fit and post-fit point in a similar direction here, but not in exactly the same way. `clock` has the best `PHIIC` in the fit summary. `discrete` has the best penalized log-likelihood and the best overall post-fit rank. So this is not a case where one model wins everything. It is a case where `clock` and `discrete` are the two strongest chronos candidates, but for different reasons.
 
 ## Ranked post-fit results (lower is better)
 
@@ -54,12 +39,7 @@ In this Terap example, `gap burden` behaves as `point-calibration slack`, not as
 | `treePL` | `0.1729` | `0.1604` | `0.1615` | `3.4631` | `4.25` |
 | `chronos_relaxed` | `0.1949` | `0.1684` | `0.1030` | `4.5535` | `4.50` |
 
-Metric-family leaders in this example:
-
-- `pulse preservation (default)`: `chronos_discrete`
-- `pulse preservation (burst)`: `chronos_discrete`
-- `gap burden`: `chronos_discrete`
-- `rate plausibility`: `chronos_clock`
+In short: `chronos_discrete` leads both pulse summaries and `gap burden`, while `chronos_clock` leads `rate plausibility`.
 
 ## Figure A: Pulse-layer tree-shape comparison among bundled chronos trees
 
@@ -94,11 +74,18 @@ For the Terap example:
 3. If fit-based selection and post-fit evaluation point to different trees, report both explicitly rather than collapsing them into one claim.
 4. In this example, `treePL` is not the leading solution under the post-fit layer.
 
-## Reproducibility
+## Files behind this example
 
-- Figure script:
-  - `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/scripts/make_postfit_metric_guide_figures.R`
-- Post-fit summary table:
-  - `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/OUTPUT_DEMO/summary_terap_empirical_postfit_metrics.csv`
-- Fit summary table:
-  - `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/OUTPUT_DEMO/summary_terap_empirical_model_fits.csv`
+All bundled example files are under:
+
+- `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/OUTPUT_DEMO/`
+
+Most important files:
+
+- `summary_terap_empirical_model_fits.csv`
+- `summary_terap_empirical_postfit_metrics.csv`
+- the four bundled `chronos` trees for `clock`, `correlated`, `relaxed`, and `discrete`
+
+Supporting figure script:
+
+- `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/scripts/make_postfit_metric_guide_figures.R`
