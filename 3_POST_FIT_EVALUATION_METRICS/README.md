@@ -14,13 +14,75 @@ The pipeline treats three things as distinct:
 - `lambda tuning`: which smoothing strength is preferred within the model search
 - `post-fit evaluation`: which final dated tree looks best biologically
 
-This page is about that third layer. It uses three metric families:
+This page is about that third layer. It uses three metric families. These are implementation-level diagnostics rather than named published indices; the citations below support the underlying ideas each family is trying to capture.
 
-- `pulse preservation`: asks whether a dated tree keeps the same branching rhythm seen in the source phylogram. In practice, this means preserving clustered speciation bursts and quiet intervals instead of smearing them into evenly spaced splits. In this workflow, the pulse family is reported three ways: `burst loss` is the standalone burst-flattening submetric, `pulse preservation (burst)` is the burst-priority composite selector, and `pulse preservation (overall)` is the balanced composite selector. This follows the branching-time and diversification-tempo literature ([Harvey et al. 1994](https://doi.org/10.1098/rstb.1994.0054); [Pybus and Harvey 2000](https://doi.org/10.1098/rspb.2000.1278); [Ford et al. 2009](https://doi.org/10.1093/sysbio/syp018)).
+- `pulse preservation`: asks whether a dated tree keeps the same branching rhythm seen in the source phylogram. In practice, this means preserving clustered speciation bursts and quiet intervals instead of smearing them into evenly spaced splits. In this workflow, the pulse family is reported three ways: `burst loss` is the standalone burst-flattening submetric, `pulse preservation (burst)` is the burst-priority composite selector, and `pulse preservation (overall)` is the balanced composite selector. This follows the literature on extracting diversification tempo from phylogenies and on distinguishing burst-like from unusually regular branching patterns ([Nee et al. 1992](https://doi.org/10.1073/pnas.89.17.8322); [Pybus and Harvey 2000](https://doi.org/10.1098/rspb.2000.1278); [Ford et al. 2009](https://doi.org/10.1093/sysbio/syp018)).
 
-- `gap burden`: asks how much extra unseen lineage history the dated tree implies relative to the calibration evidence. This is the same basic idea as ghost-lineage and stratigraphic-congruence measures ([Huelsenbeck 1994](https://doi.org/10.1017/S009483730001294X); [Wills 1999](https://doi.org/10.1080/106351599260148); [Pol and Norell 2001](https://doi.org/10.1006/clad.2001.0166); [O'Connor and Wills 2016](https://doi.org/10.1093/sysbio/syw039)). Lower is usually better, but it should be interpreted carefully: fossils usually provide minimum ages, not true lineage origins, so a tree that minimizes this too aggressively can simply be too young overall ([Parham et al. 2012](https://doi.org/10.1093/sysbio/syr107)).
+- `gap burden`: asks how much extra unseen lineage history the dated tree implies relative to the calibration evidence. This is the same general idea as ghost-lineage and stratigraphic-congruence measures ([Huelsenbeck 1994](https://doi.org/10.1017/S009483730001294X); [Wills 1999](https://doi.org/10.1080/106351599260148); [O'Connor and Wills 2016](https://doi.org/10.1093/sysbio/syw039)). Lower is usually better, but it should be interpreted carefully: fossils usually provide minimum ages, not true lineage origins, so a tree that minimizes this too aggressively can simply be too young overall ([Parham et al. 2012](https://doi.org/10.1093/sysbio/syr107)).
 
-- `rate plausibility`: asks whether the dated tree implies branchwise rate changes that still look biologically reasonable. It penalizes trees that require rates to become too extreme, too erratic, or too jumpy from parent branch to child branch. This follows the penalized-likelihood and relaxed-clock literature on rate heterogeneity and autocorrelation ([Sanderson 2002](https://doi.org/10.1093/oxfordjournals.molbev.a003974); [Drummond et al. 2006](https://doi.org/10.1371/journal.pbio.0040088); [Lepage et al. 2007](https://doi.org/10.1093/molbev/msm193); [Ho 2009](https://doi.org/10.1098/rsbl.2008.0729); [Tao et al. 2019](https://doi.org/10.1093/molbev/msz014)).
+- `rate plausibility`: asks whether the dated tree implies branchwise rate changes that still look biologically reasonable. It penalizes trees that require rates to become too extreme, too erratic, or too jumpy from parent branch to child branch. This follows the penalized-likelihood and relaxed-clock literature on among-lineage rate variation and autocorrelation ([Sanderson 2002](https://doi.org/10.1093/oxfordjournals.molbev.a003974); [Drummond et al. 2006](https://doi.org/10.1371/journal.pbio.0040088); [Lepage et al. 2007](https://doi.org/10.1093/molbev/msm193); [Ho 2009](https://doi.org/10.1098/rsbl.2008.0729); [Tao et al. 2019](https://doi.org/10.1093/molbev/msz014)).
+
+<details>
+<summary><strong>Compact formulas used in the current implementation</strong></summary>
+
+`burst loss`
+
+```text
+burst_loss_clade = max(0, (burst_ref - burst_est) / (burst_ref + 1e-12))
+mean_burst_loss = weighted mean across matched clades
+weight_clade = log(1 + n_tips) * sqrt(n_events)
+```
+
+What it means: how much burstiness was flattened away in each matched clade, with larger and more event-rich clades given more weight.
+
+`pulse preservation (overall)`
+
+```text
+local_error = 0.35 * mean_emd + 0.55 * mean_burst_loss + 0.10 * mean_centroid_shift
+global_error = 0.35 * global_emd + 0.65 * global_burst_loss
+pulse_overall = 0.80 * local_error + 0.20 * global_error + 0.20 * (1 - coverage)
+```
+
+What it means: a balanced pulse composite combining local clade rhythm, whole-tree rhythm, and how much of the reference pulse panel was actually matched. Here `emd` is the Earth Mover's Distance between relative event-time distributions, and `coverage = matched_clades / panel_clades`.
+
+`pulse preservation (burst)`
+
+```text
+local_error_burst = 0.20 * mean_emd + 0.75 * mean_burst_loss + 0.05 * mean_centroid_shift
+pulse_burst = 0.80 * local_error_burst + 0.20 * global_error + 0.20 * (1 - coverage)
+```
+
+What it means: the same pulse family, but with extra weight placed on keeping burst structure.
+
+`gap layer`
+
+```text
+relative_gap_i = (node_age_i - age_min_i) / age_min_i
+mean_relative_gap = mean(relative_gap_i)
+```
+
+What it means: the average amount of extra inferred lineage history beyond the calibration minima, scaled by the minimum ages. On this page, the Syngnatharia example uses this simple form directly; the Terapontoid example uses the same general logic but behaves as point-calibration slack because its comparisons are point-calibrated.
+
+`rate plausibility`
+
+```text
+branch_rate = phylogram_branch_length / dated_branch_duration
+rate_irregularity = sd(log_rate) + mean_parent_child_jump + 2 * extreme_rate_frac + autocorr_penalty
+autocorr_penalty = 1 - max(rate_autocorr_spearman, 0)
+```
+
+What it means: the score rises when branchwise rates are more dispersed, jump more sharply from parent to child, produce more extreme outlier branches, or lose positive autocorrelation.
+
+`overall family-balanced rank`
+
+```text
+pulse_family_rank = mean(rank(burst_loss), rank(pulse_burst), rank(pulse_overall))
+overall_mean_rank = mean(pulse_family_rank, gap_rank, rate_rank)
+```
+
+What it means: pulse contributes `1/3` of the final rank, gap contributes `1/3`, and rate contributes `1/3`.
+
+</details>
 
 ## Example 1: Terapontoid
 
@@ -147,7 +209,7 @@ For the Syngnatharia example:
 1. If you want one overall post-fit winner, choose `RelTime`.
 2. If you care most about preserving diversification bursts and smoother implied rate behavior, choose `RelTime`.
 3. If you care primarily about the calibration-fit layer alone, `MCMCTree` wins `mean relative gap`.
-4. Report the calibration caveat explicitly: this example uses the simplified method-audited gap layer, not a penalized violation score.
+4. Report the calibration caveat explicitly: here the calibration layer favors `MCMCTree`, even though the broader post-fit layer favors `RelTime`.
 5. The original visual choice to favor `RelTime` is supported quantitatively by the current post-fit layer.
 
 ### Files behind this example
