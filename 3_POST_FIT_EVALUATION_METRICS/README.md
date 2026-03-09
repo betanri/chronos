@@ -1,8 +1,6 @@
 # Post-Fit Evaluation Metrics
 
-Terapontoid example output.
-
-This page is about one question: after `clock fitting` and `lambda tuning` are finished, which dated tree looks best in the Terapontoid example?
+This page is about one question: after `clock fitting` and `lambda tuning` are finished, which dated tree looks best biologically?
 
 `Model fitting` and `lambda tuning` answer one question: which chronos settings are favored by the fitting procedure.
 
@@ -10,7 +8,7 @@ This page is about one question: after `clock fitting` and `lambda tuning` are f
 
 ## Three layers
 
-The pipeline keeps three layers separate:
+The pipeline treats three things as distinct:
 
 - `clock fitting`: which chronos model is preferred by the fit statistics
 - `lambda tuning`: which smoothing strength is preferred within the model search
@@ -20,28 +18,30 @@ This page is about that third layer. It uses three metric families:
 
 - `pulse preservation`: asks whether a dated tree keeps the same branching rhythm seen in the source phylogram. In practice, this means preserving clustered speciation bursts and quiet intervals instead of smearing them into evenly spaced splits. In this workflow, the pulse family is reported three ways: `burst loss` is the standalone burst-flattening submetric, `pulse preservation (burst)` is the burst-priority composite selector, and `pulse preservation (overall)` is the balanced composite selector. This follows the branching-time and diversification-tempo literature (Harvey et al. 1994; Pybus and Harvey 2000; Ford et al. 2009).
 
-- `gap burden`: asks how much extra unseen lineage history the dated tree implies relative to the calibration evidence. This is the same basic idea as ghost-lineage and stratigraphic-congruence measures (Huelsenbeck 1994; Wills 1999; Pol and Norell 2001; O'Connor and Wills 2016). Lower is usually better, but it should be interpreted carefully: fossils usually provide minimum ages, not true lineage origins, so a tree that minimizes this too aggressively can simply be too young overall (Parham et al. 2012). In the Terapontoid example, this behaves as point-calibration slack rather than literal fossil-gap burden.
+- `gap burden`: asks how much extra unseen lineage history the dated tree implies relative to the calibration evidence. This is the same basic idea as ghost-lineage and stratigraphic-congruence measures (Huelsenbeck 1994; Wills 1999; Pol and Norell 2001; O'Connor and Wills 2016). Lower is usually better, but it should be interpreted carefully: fossils usually provide minimum ages, not true lineage origins, so a tree that minimizes this too aggressively can simply be too young overall (Parham et al. 2012).
 
 - `rate plausibility`: asks whether the dated tree implies branchwise rate changes that still look biologically reasonable. It penalizes trees that require rates to become too extreme, too erratic, or too jumpy from parent branch to child branch. This follows the penalized-likelihood and relaxed-clock literature on rate heterogeneity and autocorrelation (Sanderson 2002; Drummond et al. 2006; Lepage et al. 2007; Ho 2009; Tao et al. 2019).
 
-## Terapontoid example: fit layer vs post-fit layer
+## Example 1: Terapontoid
+
+### Fit layer vs post-fit layer
 
 Fit and post-fit point in a similar direction here, but not in exactly the same way. `clock` has the best `PHIIC` in the fit summary. `discrete` has the best penalized log-likelihood and the best overall post-fit rank. So this is not a case where one model wins everything. It is a case where `clock` and `discrete` are the two strongest chronos candidates, but for different reasons.
 
-## Quick takeaway
+### Quick takeaway
 
 - `chronos_discrete` is the best overall tree in the Terapontoid post-fit comparison
 - `chronos_clock` is a near-tie second and is the best tree for `rate plausibility`
 - `treePL` is not the top solution in this example
 - `Figure A` is only for the pulse issue; `Figure B` is the broader post-fit comparison
 
-## Figure A: Pulse-layer tree-shape comparison among bundled chronos trees
+### Figure A: Pulse-layer tree-shape comparison among bundled chronos trees
 
 ![Pulse preservation tree panel](figures/branching_tempo_tree_panel_clean_v3.png)
 
 This figure is useful because it shows the pulse layer directly on the bundled `chronos` trees only; `treePL` is not shown in this panel. It helps explain why `discrete` and `clock` sit at the top of the pulse-preservation ranking. But this panel is only for the pulse issue. It does not show the `gap burden` or `rate plausibility` parts of the broader post-fit comparison.
 
-## Ranked post-fit results (lower is better)
+### Ranked post-fit results (lower is better)
 
 In this Terapontoid example, `gap burden` behaves as `point-calibration slack`, not as fossil-minimum ghost-lineage burden, because the comparison uses point calibrations.
 
@@ -57,13 +57,13 @@ The overall mean rank below is family-balanced. The three pulse summaries are sh
 
 In short: `chronos_discrete` leads both pulse selector summaries and `gap burden`, `chronos_correlated` minimizes the standalone `burst_loss` submetric, and `chronos_clock` leads `rate plausibility`. When pulse is treated as one family contributing one-third of the final score, `chronos_relaxed` edges above `treePL` overall because `treePL` has the highest `gap burden`.
 
-## Figure B: Post-fit comparison across metric families
+### Figure B: Post-fit comparison across metric families
 
 ![Post-fit evaluation metric families](figures/postfit_metric_family_values.png)
 
 Figure B uses the same family-balanced rule as the table. Even though three pulse panels are shown, they do not count as three separate thirds. They are averaged into one pulse-family contribution, and that pulse family contributes one-third of the overall rank.
 
-Interpretation for this example:
+### Interpretation for this example
 
 - `chronos_discrete` is the overall post-fit winner because it leads both pulse summaries and gap burden while staying near-best on rate plausibility
 - `chronos_clock` is essentially tied at the top on pulse preservation, nearly tied on gap burden, and is the best tree on rate plausibility
@@ -71,7 +71,7 @@ Interpretation for this example:
 - `treePL` beats `chronos_relaxed` on the two pulse selectors and on rate plausibility, but it has the highest gap burden in this comparison
 - under the family-balanced overall rank, `treePL` drops below `chronos_relaxed` because pulse contributes only one-third of the final score
 
-## Practical decision rule
+### Practical decision rule
 
 For the Terapontoid example:
 
@@ -81,7 +81,7 @@ For the Terapontoid example:
 4. If fit-based selection and post-fit evaluation point to different trees, report both explicitly rather than collapsing them into one claim.
 5. In this example, `treePL` is not the leading solution under the post-fit layer, and under family-balanced ranking it places last.
 
-## Files behind this example
+### Files behind this example
 
 The example is split across the pipeline section and this post-fit section.
 
@@ -95,3 +95,83 @@ Post-fit figures and scripts for this section:
 
 - `3_POST_FIT_EVALUATION_METRICS/figures/`
 - `3_POST_FIT_EVALUATION_METRICS/scripts/`
+
+## Example 2: Syngnatharia
+
+### Visual choice before metrics
+
+This example is different. It does not start from a chronos fit search. It starts from an earlier paper-level visual comparison among the `RAxML` phylogram, `MCMCTree`, and `RelTime`. In that original comparison, the practical choice was to favor `RelTime` because it visually preserved the diversification bursts in the phylogram better than `MCMCTree`.
+
+That is the key point of this second example: the choice to prefer `RelTime` came first as a visual judgment. The post-fit metrics are being added here to quantify that older rationale, not to replace it after the fact.
+
+### Quick takeaway
+
+- `RelTime` is the overall post-fit winner in this Syngnatharia comparison
+- `RelTime` wins all three pulse summaries and also wins `rate plausibility`
+- `MCMCTree` wins the simple calibration-fit layer through lower `mean relative gap`
+- `Figure A` is the original visual rationale from the paper; `Figure B` is the quantitative post-fit follow-up
+
+### Figure A: Original visual rationale from the Syngnatharia paper
+
+![Syngnatharia paper figure showing the original visual choice](../2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/Example_Syngna_AmNat/Fig_S5_Burst_preservation.png)
+
+This is the original paper figure that motivated the visual preference for `RelTime`. The RAxML phylogram on the left shows clustered branching bursts in several parts of the tree. In the middle panel, `MCMCTree` spreads many of those events out more evenly through time. In the right panel, `RelTime` better tracks the burst structure seen in the phylogram. That was the original rationale back then. This panel addresses the pulse issue only. It does not show the calibration-fit layer or the rate-plausibility layer.
+
+### Ranked post-fit results (lower is better)
+
+In this example, the gap layer is intentionally simplified to `mean relative gap`. We do **not** fold a violation penalty into the ranked gap term. That is deliberate here because the two methods did not use identical calibration configurations in Table S2: row `1` is MCMCTree-only because `RelTime` does not allow root calibrations, and row `12` is excluded because the supplement states it was used only for treePL congruification.
+
+The overall mean rank below is family-balanced. The three pulse summaries are shown separately for transparency, but they are first collapsed into one pulse-family contribution. So pulse as a whole contributes one-third of the final overall rank, while `mean relative gap` and `rate plausibility` contribute the other two thirds.
+
+| candidate | burst loss | pulse preservation (burst) | pulse preservation (overall) | mean relative gap | rate plausibility | overall mean rank (pulse = 1/3) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `RelTime` | `0.1620` | `0.1874` | `0.2077` | `0.2689` | `1.1514` | `1.33` |
+| `MCMCTree` | `0.2396` | `0.2560` | `0.2600` | `0.2184` | `1.5531` | `1.67` |
+
+Bounded-calibration diagnostics are shown separately rather than folded into the ranked gap term:
+
+- `RelTime`: `1` upper-bound overshoot, `3.9894 Ma` total
+- `MCMCTree`: `0` upper-bound overshoots, `0 Ma` total
+
+### Figure B: Post-fit comparison across metric families
+
+![Syngnatharia post-fit evaluation metric families](figures/syngnatharia_postfit_metric_family_values.png)
+
+Figure B uses the same family-balanced rule as the table. Even though three pulse panels are shown, they do not count as three separate thirds. They are averaged into one pulse-family contribution, and that pulse family contributes one-third of the overall rank. Here the gap panel is `mean relative gap`, not a penalized burden score.
+
+### Interpretation for this example
+
+- `RelTime` is the overall post-fit winner because it leads all three pulse summaries and also leads `rate plausibility`, while losing only the simple calibration-fit layer
+- `MCMCTree` has the lower `mean relative gap`, so it stays closer to the calibration minima on average in this scoring
+- the post-fit metrics therefore support, rather than reverse, the original visual rationale from Figure S5: `RelTime` better preserves the branching bursts seen in the RAxML phylogram
+- this is exactly the kind of case where a visual choice made before these metrics existed can now be quantified explicitly instead of being left as impression only
+- the calibration difference is real, but it is narrower under the simple `mean relative gap` summary than it looked under the earlier penalized gap version
+
+### Practical decision rule
+
+For the Syngnatharia example:
+
+1. If you want one overall post-fit winner, choose `RelTime`.
+2. If you care most about preserving diversification bursts and smoother implied rate behavior, choose `RelTime`.
+3. If you care primarily about the calibration-fit layer alone, `MCMCTree` wins `mean relative gap`.
+4. Report the calibration caveat explicitly: this example uses the simplified method-audited gap layer, not a penalized violation score.
+5. The original visual choice to favor `RelTime` is supported quantitatively by the current post-fit layer.
+
+### Files behind this example
+
+This example is split across the paper example files and the post-fit outputs.
+
+Example files used here:
+
+- `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/Example_Syngna_AmNat/Fig_S5_Burst_preservation.png`
+- `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/Example_Syngna_AmNat/backbone_Raxml_besttree_matrix75.tre`
+- `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/Example_Syngna_AmNat/CalibratedTree_backbone_MCMCTree_matrix75_RAXML.tre`
+- `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/Example_Syngna_AmNat/CalibratedTree_backbone_RelTime_matrix75_RAXML.tre`
+
+Post-fit outputs used here:
+
+- `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/Example_Syngna_AmNat/postfit_metrics_out/syngnatharia_postfit_metrics.csv`
+- `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/Example_Syngna_AmNat/postfit_metrics_out/syngnatharia_fossil_gap_side_by_side.csv`
+- `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/Example_Syngna_AmNat/postfit_metrics_out/syngnatharia_tableS2_method_audit.csv`
+- `3_POST_FIT_EVALUATION_METRICS/figures/syngnatharia_postfit_metric_family_values.png`
+- `3_POST_FIT_EVALUATION_METRICS/scripts/make_syngnatharia_postfit_figures.R`
