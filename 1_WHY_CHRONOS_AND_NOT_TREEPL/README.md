@@ -20,7 +20,7 @@ This pipeline treats three things as distinct:
 3. `post-fit evaluation metrics`
    - evaluating the dated trees that come out of that fitting process
 
-That distinction matters here. The original 720 benchmark is still first and foremost a method comparison based on dating accuracy and stability. The pulse, gap, and rate metrics are a separate post-fit evaluation layer. They do not replace clock fitting or lambda tuning, and they do not replace the original MAE benchmark. They help interpret how the resulting chronograms behave once fitting is already done.
+That distinction matters here. The original 720 benchmark is still first and foremost a method comparison based on dating accuracy and stability. The pulse, gap, and rate metrics are a separate post-fit evaluation layer. They do not replace clock fitting or lambda tuning, and they do not replace the original MAE benchmark. They help interpret how the resulting chronograms behave once fitting is already done. That post-fit layer now lives in [PhyloChronoRank (PCR)](https://github.com/betanri/PhyloChronoRank).
 
 ## Simulation design (how tests were generated)
 

@@ -12,7 +12,7 @@ This pipeline dates a phylogram with `ape::chronos` and gives you:
   - `lambda tuning`
   - `post-fit evaluation metrics`
 
-The goal is to help you decide which dated tree is most defensible for your biological question. The dedicated post-fit framework now lives in the companion repo `PhyloChronoRank`.
+The goal is to help you decide which dated tree is most defensible for your biological question. The dedicated post-fit framework now lives in the companion repo [PhyloChronoRank (PCR)](https://github.com/betanri/PhyloChronoRank).
 
 ## Three Distinct Layers
 
@@ -30,7 +30,7 @@ The pipeline is easiest to understand if these three layers are kept separate.
 
 ### 3. Post-fit evaluation metrics
 
-See [Section 3: Post-Fit Evaluation Metrics (PhyloChronoRank)](https://github.com/betanri/PhyloChronoRank).
+See [PhyloChronoRank (PCR): Post-Fit Evaluation Metrics](https://github.com/betanri/PhyloChronoRank).
 
 - evaluates the dated trees that come out of fitting and tuning
 - does not replace clock fitting or lambda tuning
