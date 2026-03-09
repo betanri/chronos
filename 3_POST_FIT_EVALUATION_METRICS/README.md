@@ -119,19 +119,12 @@ This is the original paper figure from [Santaquiteria et al. 2024](https://www.j
 
 ### Ranked post-fit results (lower is better)
 
-In this example, the gap layer is intentionally simplified to `mean relative gap`. We do **not** fold a violation penalty into the ranked gap term. That is deliberate here because the two methods did not use identical calibration configurations in Table S2: row `1` is MCMCTree-only because `RelTime` does not allow root calibrations, and row `12` is excluded because the supplement states it was used only for treePL congruification.
-
 The overall mean rank below is family-balanced. The three pulse summaries are shown separately for transparency, but they are first collapsed into one pulse-family contribution. So pulse as a whole contributes one-third of the final overall rank, while `mean relative gap` and `rate plausibility` contribute the other two thirds.
 
 | candidate | burst loss | pulse preservation (burst) | pulse preservation (overall) | mean relative gap | rate plausibility | overall mean rank (pulse = 1/3) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | `RelTime` | `0.1620` | `0.1874` | `0.2077` | `0.2689` | `1.1514` | `1.33` |
 | `MCMCTree` | `0.2396` | `0.2560` | `0.2600` | `0.2184` | `1.5531` | `1.67` |
-
-Bounded-calibration diagnostics are shown separately rather than folded into the ranked gap term:
-
-- `RelTime`: `1` upper-bound overshoot, `3.9894 Ma` total
-- `MCMCTree`: `0` upper-bound overshoots, `0 Ma` total
 
 ### Figure B: Post-fit comparison across metric families
 
