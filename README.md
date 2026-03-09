@@ -12,4 +12,6 @@ This tab is the workflow: a practical wrapper around `ape::chronos` that automat
 
 ## 3) [POST-FIT EVALUATION METRICS](3_POST_FIT_EVALUATION_METRICS/README.md)
 
-This tab is the comparison layer applied after fitting is finished. It focuses on how the resulting chronograms behave biologically under `pulse preservation`, `gap burden`, and `rate plausibility`, using the Terapontoid example as the worked case.
+This tab is the comparison layer applied after fitting is finished. It asks a different question from model fitting: once you already have dated trees, which one behaves most plausibly as a chronogram?
+
+It evaluates trees under `pulse preservation`, `gap burden`, and `rate plausibility`, and shows how those metrics can be read across two empirical datasets. In plain language, this is the section that turns visual impressions about branching bursts, calibration fit, and implied rate behavior into explicit side-by-side comparisons.
