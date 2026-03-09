@@ -16,11 +16,11 @@ The pipeline treats three things as distinct:
 
 This page is about that third layer. It uses three metric families:
 
-- `pulse preservation`: asks whether a dated tree keeps the same branching rhythm seen in the source phylogram. In practice, this means preserving clustered speciation bursts and quiet intervals instead of smearing them into evenly spaced splits. In this workflow, the pulse family is reported three ways: `burst loss` is the standalone burst-flattening submetric, `pulse preservation (burst)` is the burst-priority composite selector, and `pulse preservation (overall)` is the balanced composite selector. This follows the branching-time and diversification-tempo literature (Harvey et al. 1994; Pybus and Harvey 2000; Ford et al. 2009).
+- `pulse preservation`: asks whether a dated tree keeps the same branching rhythm seen in the source phylogram. In practice, this means preserving clustered speciation bursts and quiet intervals instead of smearing them into evenly spaced splits. In this workflow, the pulse family is reported three ways: `burst loss` is the standalone burst-flattening submetric, `pulse preservation (burst)` is the burst-priority composite selector, and `pulse preservation (overall)` is the balanced composite selector. This follows the branching-time and diversification-tempo literature ([Harvey et al. 1994](https://doi.org/10.1098/rstb.1994.0054); [Pybus and Harvey 2000](https://doi.org/10.1098/rspb.2000.1278); [Ford et al. 2009](https://doi.org/10.1093/sysbio/syp018)).
 
-- `gap burden`: asks how much extra unseen lineage history the dated tree implies relative to the calibration evidence. This is the same basic idea as ghost-lineage and stratigraphic-congruence measures (Huelsenbeck 1994; Wills 1999; Pol and Norell 2001; O'Connor and Wills 2016). Lower is usually better, but it should be interpreted carefully: fossils usually provide minimum ages, not true lineage origins, so a tree that minimizes this too aggressively can simply be too young overall (Parham et al. 2012).
+- `gap burden`: asks how much extra unseen lineage history the dated tree implies relative to the calibration evidence. This is the same basic idea as ghost-lineage and stratigraphic-congruence measures ([Huelsenbeck 1994](https://doi.org/10.1017/S009483730001294X); [Wills 1999](https://doi.org/10.1080/106351599260148); [Pol and Norell 2001](https://doi.org/10.1006/clad.2001.0166); [O'Connor and Wills 2016](https://doi.org/10.1093/sysbio/syw039)). Lower is usually better, but it should be interpreted carefully: fossils usually provide minimum ages, not true lineage origins, so a tree that minimizes this too aggressively can simply be too young overall ([Parham et al. 2012](https://doi.org/10.1093/sysbio/syr107)).
 
-- `rate plausibility`: asks whether the dated tree implies branchwise rate changes that still look biologically reasonable. It penalizes trees that require rates to become too extreme, too erratic, or too jumpy from parent branch to child branch. This follows the penalized-likelihood and relaxed-clock literature on rate heterogeneity and autocorrelation (Sanderson 2002; Drummond et al. 2006; Lepage et al. 2007; Ho 2009; Tao et al. 2019).
+- `rate plausibility`: asks whether the dated tree implies branchwise rate changes that still look biologically reasonable. It penalizes trees that require rates to become too extreme, too erratic, or too jumpy from parent branch to child branch. This follows the penalized-likelihood and relaxed-clock literature on rate heterogeneity and autocorrelation ([Sanderson 2002](https://doi.org/10.1093/oxfordjournals.molbev.a003974); [Drummond et al. 2006](https://doi.org/10.1371/journal.pbio.0040088); [Lepage et al. 2007](https://doi.org/10.1093/molbev/msm193); [Ho 2009](https://doi.org/10.1098/rsbl.2008.0729); [Tao et al. 2019](https://doi.org/10.1093/molbev/msz014)).
 
 ## Example 1: Terapontoid
 
@@ -100,7 +100,7 @@ Post-fit figures and scripts for this section:
 
 ### Visual choice before metrics
 
-This example is different. It does not start from a chronos fit search. It starts from an earlier paper-level visual comparison among the `RAxML` phylogram, `MCMCTree`, and `RelTime`. In that original comparison, the practical choice was to favor `RelTime` because it visually preserved the diversification bursts in the phylogram better than `MCMCTree`.
+This example is different. It does not start from a chronos fit search. It starts from an earlier paper-level visual comparison among the `RAxML` phylogram, `MCMCTree`, and `RelTime`. In that original comparison, the practical choice was to favor `RelTime` because it visually preserved the diversification bursts in the phylogram better than `MCMCTree`, as discussed in [Santaquiteria et al. 2024](https://www.journals.uchicago.edu/doi/10.1086/733931).
 
 That is the key point of this second example: the choice to prefer `RelTime` came first as a visual judgment. The post-fit metrics are being added here to quantify that older rationale, not to replace it after the fact.
 
@@ -115,7 +115,7 @@ That is the key point of this second example: the choice to prefer `RelTime` cam
 
 ![Syngnatharia paper figure showing the original visual choice](../2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/EXAMPLE_FILES/Example_Syngna_AmNat/Fig_S5_Burst_preservation.png)
 
-This is the original paper figure that motivated the visual preference for `RelTime`. The RAxML phylogram on the left shows clustered branching bursts in several parts of the tree. In the middle panel, `MCMCTree` spreads many of those events out more evenly through time. In the right panel, `RelTime` better tracks the burst structure seen in the phylogram. That was the original rationale back then. This panel addresses the pulse issue only. It does not show the calibration-fit layer or the rate-plausibility layer.
+This is the original paper figure from [Santaquiteria et al. 2024](https://www.journals.uchicago.edu/doi/10.1086/733931) that motivated the visual preference for `RelTime`. The RAxML phylogram on the left shows clustered branching bursts in several parts of the tree. In the middle panel, `MCMCTree` spreads many of those events out more evenly through time. In the right panel, `RelTime` better tracks the burst structure seen in the phylogram. That was the original rationale back then. This panel addresses the pulse issue only. It does not show the calibration-fit layer or the rate-plausibility layer.
 
 ### Ranked post-fit results (lower is better)
 
