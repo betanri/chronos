@@ -200,7 +200,6 @@ Figure B uses the same family-balanced rule as the table. Even though three puls
 - `MCMCTree` has the lower `mean relative gap`, so it stays closer to the calibration minima on average in this scoring
 - the post-fit metrics therefore support, rather than reverse, the original visual rationale from Figure S5: `RelTime` better preserves the branching bursts seen in the RAxML phylogram
 - this is exactly the kind of case where a visual choice made before these metrics existed can now be quantified explicitly instead of being left as impression only
-- the calibration difference is real, but it is narrower under the simple `mean relative gap` summary than it looked under the earlier penalized gap version
 
 ### Practical decision rule
 
