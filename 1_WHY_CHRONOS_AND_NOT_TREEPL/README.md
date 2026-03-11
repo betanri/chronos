@@ -5,7 +5,7 @@ Because treePL is widely used for divergence-time analyses of large phylogenies,
 I compared **treePL** and **chronos** under the same topology, calibration, and replicate grid.
 
 - Total tests: **720** (4 true clock regimes x 3 extinction levels x 2 heterotachy levels x 30 replicates)
-- Same topology and root calibration for both methods
+- Same topology and exact root calibration for both methods
 - treePL tuning: smooth in `{0.1, 1, 10}`
 - chronos tuning: model in `{clock, correlated, relaxed, discrete}`, lambda in `{0.1, 1, 10}`, robust selector
 
@@ -21,6 +21,8 @@ This pipeline treats three things as distinct:
    - evaluating the dated trees that come out of that fitting process
 
 That distinction matters here. The original 720 benchmark is still first and foremost a method comparison based on dating accuracy and stability. The pulse, gap, and rate metrics are a separate post-fit evaluation layer. They do not replace clock fitting or lambda tuning, and they do not replace the original MAE benchmark. They help interpret how the resulting chronograms behave once fitting is already done. That post-fit layer now lives in [PhyloChronoRank (PCR)](https://github.com/betanri/PhyloChronoRank).
+
+One design caveat should be kept explicit from the start: this benchmark uses an exact root age and no internal calibrations. That makes it an idealized, calibration-sparse comparison. It is informative, but it is not the same thing as testing the methods under the more common empirical case of uncertain root age plus multiple internal calibrations.
 
 ## Simulation design (how tests were generated)
 
@@ -41,6 +43,8 @@ That distinction matters here. The original 720 benchmark is still first and for
   - treePL: smooth grid `{0.1, 1, 10}`.
   - chronos: model grid `{clock, correlated, relaxed, discrete}`, lambda grid `{0.1, 1, 10}`.
   - robust chronos selector settings: `PLOG_CLOCK_SWITCH_THRESH=1`, `PLOG_NONCLOCK_SWITCH_THRESH=2`, `PLOG_TIE_EPS=2`, `K_FIT_GRID={2,3,5,10}`.
+
+That search is balanced in one specific sense: both methods were given the same three-value smoothing grid. The asymmetry is not that treePL got fewer smoothing values, but that chronos can also search across multiple clock models. That is inherent to the methods, not a tuning bias. Even so, the benchmark should still be read as one search design, not as the last possible word on treePL tuning.
 
 ## Headline result
 
@@ -107,7 +111,7 @@ The benchmark is centered on MAE and failure rate, and it should still be read t
 - `gap burden`
   - asks how much fossil-gap burden or calibration slack the dated tree implies
   - this is not usable in the 720 benchmark because the design uses only a fixed root calibration
-- `rate plausibility`
+- `rate irregularity`
   - asks whether the dated tree requires extreme or erratic branchwise rate changes
 
 These are post-fit evaluation metrics. They are not the same thing as:
@@ -122,17 +126,17 @@ They operate one step later by comparing the resulting dated trees.
 For the 720 simulation outputs rescored under this post-fit evaluation layer, the interpretation remains favorable to chronos:
 
 - `pulse preservation`: chronos better in all 24 representative-condition comparisons by `pulse_score`, and in 23/24 by `burst_loss` and `tempo_composite`
-- `rate plausibility`: chronos better in 18/24 representative-condition comparisons by `rate_irregularity`
+- `rate irregularity`: chronos better in 18/24 representative-condition comparisons by `rate_irregularity`
 - `gap burden`: not applicable by design under root-only calibration
 
 So these post-fit evaluation metrics do not overturn the original conclusion. They reinforce it, while adding a more biologically informative view of tree shape and implied rate behavior.
 
 They also show that the picture is not uniform across every simulated regime. treePL still does better in some specific strata:
 
-- `rate plausibility`, strict-clock conditions: treePL wins `5/6`, chronos wins `1/6`
+- `rate irregularity`, strict-clock conditions: treePL wins `5/6`, chronos wins `1/6`
 - `MAE`, discrete conditions: treePL wins `2/6`, chronos wins `4/6`
 - `tempo_composite`, autocorrelated conditions: treePL wins `1/6`, chronos wins `5/6`
-- `rate plausibility`, autocorrelated conditions: treePL wins `1/6`, chronos wins `5/6`
+- `rate irregularity`, autocorrelated conditions: treePL wins `1/6`, chronos wins `5/6`
 
 Outside those specific strata, chronos wins the remaining representative-condition comparisons for the post-fit metrics summarized here.
 
@@ -158,18 +162,18 @@ This figure summarizes the 720 rescoring under the post-fit evaluation layer. Pu
 
 ![Method means under pulse and rate metrics](figures/fig7_pulse_rate_method_means.png)
 
-This figure shows method means for the pulse-preservation and rate-plausibility summaries. Chronos has higher `pulse_score` and lower `pulse_error`, `burst_loss`, and `rate_irregularity` than treePL in these representative-tree comparisons.
+This figure shows method means for the pulse-preservation and rate-irregularity summaries. Chronos has higher `pulse_score` and lower `pulse_error`, `burst_loss`, and `rate_irregularity` than treePL in these representative-tree comparisons.
 
 ![Post-fit results by true clock model](figures/fig8_postfit_by_clock_model.png)
 
-This figure shows the places where treePL still wins and where chronos still wins within the same strata. The clearest case is `rate plausibility` under strict-clock simulations, where treePL wins `5/6` representative conditions and chronos wins `1/6`. Smaller treePL advantages also appear for `MAE` in discrete simulations (`2/6` treePL, `4/6` chronos) and for `tempo_composite` and `rate plausibility` in isolated autocorrelated conditions (`1/6` treePL, `5/6` chronos).
+This figure shows the places where treePL still wins and where chronos still wins within the same strata. The clearest case is `rate irregularity` under strict-clock simulations, where treePL wins `5/6` representative conditions and chronos wins `1/6`. Smaller treePL advantages also appear for `MAE` in discrete simulations (`2/6` treePL, `4/6` chronos) and for `tempo_composite` and `rate irregularity` in isolated autocorrelated conditions (`1/6` treePL, `5/6` chronos).
 
 ## Practical interpretation
 
 - The post-fit evaluation layer still favors chronos overall: chronos wins all `24/24` representative-condition comparisons by `pulse_score`, `23/24` by `burst_loss` and `tempo_composite`, and `18/24` by `rate_irregularity`.
-- The strongest exception is `rate plausibility` under strict-clock simulations, where treePL wins `5/6` representative conditions. Smaller treePL advantages also occur for `MAE` in discrete simulations and for isolated autocorrelated comparisons in `tempo_composite` and `rate plausibility`.
-- `Gap burden` is not informative in this 720 benchmark because the design uses only a fixed root calibration, so the relevant post-fit evidence here is pulse preservation plus rate plausibility.
-- For empirical analyses, keep clock fitting, lambda tuning, and post-fit evaluation as separate reporting layers, and present fit-based model choice together with pulse preservation, gap burden when available, and rate plausibility.
+- The strongest exception is `rate irregularity` under strict-clock simulations, where treePL wins `5/6` representative conditions. Smaller treePL advantages also occur for `MAE` in discrete simulations and for isolated autocorrelated comparisons in `tempo_composite` and `rate irregularity`.
+- `Gap burden` is not informative in this 720 benchmark because the design uses only a fixed root calibration, so the relevant post-fit evidence here is pulse preservation plus rate irregularity.
+- For empirical analyses, keep clock fitting, lambda tuning, and post-fit evaluation as separate reporting layers, and present fit-based model choice together with pulse preservation, gap burden when available, and rate irregularity.
 
 ## Data files
 

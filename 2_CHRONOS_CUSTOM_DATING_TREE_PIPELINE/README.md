@@ -37,7 +37,7 @@ See [PhyloChronoRank (PCR): Post-Fit Evaluation Metrics](https://github.com/beta
 - asks whether the resulting chronograms look biologically defensible under three complementary metrics:
   - `pulse preservation`
   - `gap burden`
-  - `rate plausibility`
+  - `rate irregularity`
 
 ## What The Pipeline Does
 
@@ -53,7 +53,7 @@ Given a target phylogram, the script:
 6. Computes `(3) post-fit evaluation metrics` on the resulting chronograms:
    - pulse preservation
    - gap burden
-   - rate plausibility
+   - rate irregularity
 7. Writes:
    - one tree per model
    - fit tables
@@ -157,7 +157,7 @@ The post-fit comparison layer is meant to be read through three complementary me
 - if calibrations are exact ages, this behaves as calibration slack
 - lower values mean the dated tree sits closer to the calibration information
 
-### 3. Rate plausibility
+### 3. Rate irregularity
 
 - converts phylogram branch lengths and chronogram branch durations into implied branchwise rates
 - penalizes extreme rate dispersion, abrupt parent-child jumps, weak local autocorrelation, and too many outlier rates
@@ -195,7 +195,7 @@ Notes:
 
 - If clock fitting and post-fit evaluation favor the same model: strong convergence.
 - If clock fitting favors one model but the post-fit layer favors another: report both explicitly.
-- If pulse preservation, gap burden, and rate plausibility disagree within the post-fit layer, treat that as biologically meaningful conflict rather than noise.
+- If pulse preservation, gap burden, and rate irregularity disagree within the post-fit layer, treat that as biologically meaningful conflict rather than noise.
 - Do not choose from fit alone when the dated trees imply very different branching rhythm or very different rate behavior.
 
 ## Common Issues
