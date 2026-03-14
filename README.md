@@ -1,16 +1,16 @@
 # Chronos
 
-This repository is organized into two main sections inside `Chronos` plus one companion repo:
+This repository centers on a chronos-vs-treePL benchmark and points to the companion `PhyloChronoRank (PCR)` repo for shared dating-grid generation and post-fit chronogram comparison.
 
-## 1) [WHY CHRONOS AND NOT TREEPL](1_WHY_CHRONOS_AND_NOT_TREEPL/README.md)
+## [WHY CHRONOS AND NOT TREEPL](WHY_CHRONOS_AND_NOT_TREEPL/README.md)
 
 A 720-run benchmark showing, under an exact-root and calibration-sparse simulation design, that chronos had lower dating error and fewer failures than treePL (conditions tested: 4 clock regimes x 3 extinction levels x 2 heterotachy levels x 30 replicates). It is there to justify method choice with data, but it should be read as an idealized benchmark rather than as a full proxy for empirical dating problems with uncertain root ages and multiple internal calibrations.
 
-## 2) [CHRONOS -- CUSTOM DATING TREE PIPELINE](2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/README.md)
+## [SHARED DATING GRID PIPELINE: PhyloChronoRank (PCR)](https://github.com/betanri/PhyloChronoRank/blob/main/README_Dating_Grid.md)
 
-This tab is the workflow: a practical wrapper around `ape::chronos` that automates things ape alone does not give you out-of-the-box in one run. It handles calibration setup, clock-model fitting, lambda tuning, and the production of dated-tree outputs. The post-fit evaluation layer now lives in the companion repo listed below.
+This guide runs `chronos`, `treePL`, and `RelTime` from one shared calibration source, using either a calibration CSV or a reference backbone time tree for congruification. It is the active dating workflow paired with the chronos benchmark in this repo.
 
-## 3) [POST-FIT EVALUATION METRICS: PhyloChronoRank (PCR)](https://github.com/betanri/PhyloChronoRank)
+## [POST-FIT EVALUATION METRICS: PhyloChronoRank (PCR)](https://github.com/betanri/PhyloChronoRank)
 
 This companion repo, `PhyloChronoRank (PCR)`, is the comparison layer applied after fitting is finished. It asks a different question from model fitting: once you already have dated trees, which one behaves most plausibly as a chronogram?
 

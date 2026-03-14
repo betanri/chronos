@@ -2,9 +2,11 @@
 
 ## Benchmark Evidence
 
-- [**Why Chronos and not treePL?**](../1_WHY_CHRONOS_AND_NOT_TREEPL/README.md)
+- [**Why Chronos and not treePL?**](../WHY_CHRONOS_AND_NOT_TREEPL/README.md)
 
-This pipeline dates a phylogram with `ape::chronos` and gives you:
+For the shared dating-grid workflow that generates `chronos`, `treePL`, and `RelTime` candidates from one calibration source, use [PhyloChronoRank (PCR): Dating Grid Guide](https://github.com/betanri/PhyloChronoRank/blob/main/README_Dating_Grid.md).
+
+This folder documents a chronos-only wrapper around `ape::chronos` and gives you:
 
 - one chronogram per clock model (`clock`, `correlated`, `relaxed`, `discrete`)
 - a workflow that keeps three distinct layers separate:
@@ -12,7 +14,7 @@ This pipeline dates a phylogram with `ape::chronos` and gives you:
   - `lambda tuning`
   - `post-fit evaluation metrics`
 
-The goal is to help you decide which dated tree is most defensible for your biological question. The dedicated post-fit framework now lives in the companion repo [PhyloChronoRank (PCR)](https://github.com/betanri/PhyloChronoRank).
+The goal is to help you decide which dated tree is most defensible for your biological question. The dedicated post-fit framework lives in the companion repo [PhyloChronoRank (PCR)](https://github.com/betanri/PhyloChronoRank).
 
 ## Three Distinct Layers
 
@@ -62,7 +64,7 @@ Given a target phylogram, the script:
 
 ## Main Script
 
-- `2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE/Run_chronos_pipeline.R`
+- `CHRONOS_CUSTOM_DATING_TREE_PIPELINE/Run_chronos_pipeline.R`
 
 ## Required R Packages
 
@@ -129,7 +131,7 @@ How this is used in the pipeline:
 ## How To Run
 
 ```r
-setwd("path/to/project/2_CHRONOS_CUSTOM_DATING_TREE_PIPELINE")
+setwd("path/to/project/CHRONOS_CUSTOM_DATING_TREE_PIPELINE")
 source("Run_chronos_pipeline.R")
 ```
 
