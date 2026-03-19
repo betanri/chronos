@@ -78,6 +78,44 @@ The final page will report at least these tables:
 
 The expected input layout for those tables and figures is documented in [data/README.md](data/README.md).
 
+## Preliminary live suite snapshot
+
+Current in-progress snapshot used while the full benchmark finishes:
+
+- `A` and `B` are currently being carried by local runs
+- `C`, `D`, and `E` are currently being carried by OSCER runs
+- values below are provisional and will be replaced by the final drop-in suite tables
+
+| Benchmark | Current source | Completed reps | Current best | MAE | Next best | MAE |
+|---|---|---:|---|---:|---|---:|
+| `A` | local | `30.00` | `chronos-clock` | `0.02` | `chronos-correlated` | `0.88` |
+| `B` | local | `27.22` | `chronos-clock` | `3.52` | `RelTime` | `5.91` |
+| `C` | OSCER | `9.97` | `chronos-clock` | `0.43` | `RelTime` | `1.41` |
+| `D` | OSCER | `7.00` | `RelTime` | `5.76` | `chronos-clock` | `7.98` |
+| `E` | OSCER | `12.28` | `chronos-clock` | `4.89` | `RelTime` | `5.86` |
+
+This is the current three-method benchmark view. The exact-root reference figures below remain useful context, but the active suite now includes `RelTime` as a first-class method.
+
+## Embedded reference figures
+
+### Exact-root benchmark figures
+
+**Fig 1. Overall MAE distribution**
+
+![Overall MAE distribution](figures/fig1_overall_mae_boxplot.png)
+
+**Fig 2. Mean MAE by true clock regime**
+
+![Mean MAE by true clock regime](figures/fig2_mae_by_true_clock.png)
+
+**Fig 3. Mean MAE across extinction and heterotachy**
+
+![MAE heatmap across extinction and heterotachy](figures/fig3_mae_heatmap_mu_heterotachy.png)
+
+**Fig 4. Extinction × heterotachy interaction**
+
+![Interaction plot across extinction and heterotachy](figures/fig4_interaction_heterotachy_extinction.png)
+
 ## Representative tree panel
 
 `Fig 4` will be a compact multi-row panel:
@@ -91,6 +129,47 @@ The expected input layout for those tables and figures is documented in [data/RE
 - intended to show the benchmark-specific shape differences without taking over the whole page
 
 This panel is meant to stay interpretable at a glance. It is not supposed to be a full gallery of every condition.
+
+Current compact reference panel:
+
+![Representative tree panel](figures/fig5_representative_trees_compact.png)
+
+## Exact-root reference tables
+
+The exact-root reference file currently in this folder predates the current three-method `A-E` suite, so the summary tables below show the archived `chronos` + `treePL` comparison for that dataset. They remain useful as a reference panel while the new suite-level figures are being filled in.
+
+### By true clock regime
+
+| True clock regime | treePL mean MAE | chronos mean MAE | chronos win rate |
+|---|---:|---:|---:|
+| `strict` | `1.089` | `0.004` | `1.000` |
+| `independent` | `1.132` | `0.436` | `0.850` |
+| `discrete` | `1.298` | `0.631` | `0.774` |
+| `autocorrelated` | `4.168` | `0.915` | `0.875` |
+
+### By extinction (`mu`)
+
+| `mu` | treePL mean MAE | chronos mean MAE | chronos win rate |
+|---|---:|---:|---:|
+| `0.0` | `0.754` | `0.226` | `0.894` |
+| `0.5` | `1.102` | `0.371` | `0.886` |
+| `0.8` | `3.510` | `0.893` | `0.857` |
+
+### By heterotachy
+
+| Heterotachy | treePL mean MAE | chronos mean MAE | chronos win rate |
+|---|---:|---:|---:|
+| `0.05` | `1.288` | `0.088` | `1.000` |
+| `0.25` | `2.419` | `0.905` | `0.738` |
+
+### `chronos` model recovery
+
+| True `chronos` model | Recovered | Recovery rate |
+|---|---:|---:|
+| `clock` | `179 / 180` | `0.994` |
+| `correlated` | `134 / 180` | `0.744` |
+| `discrete` | `0 / 180` | `0.000` |
+| `relaxed` | `0 / 180` | `0.000` |
 
 ## `treePL` environment diagnostic
 
@@ -109,6 +188,14 @@ The reporting here should stay compact:
 - local vs OSCER summary
 - baseline delta summary
 - one short interpretation paragraph
+
+Current compact summary:
+
+| Run | Bundles | Mean treePL MAE | Median treePL MAE | Mean delta vs baseline | Mean runtime (s) |
+|---|---:|---:|---:|---:|---:|
+| `Tenv local` | `36` | `8.84` | `7.27` | `+2.31` | `222.3` |
+| `TenvP local` | `36` | `6.65` | `7.27` | `-0.06` | `125.5` |
+| `Tenv OSCER` | `36` | `6.36` | `6.34` | `+0.01` | `470.3` |
 
 </details>
 
@@ -130,6 +217,21 @@ This page will therefore include:
 - one `PCR` summary table
 
 The point is not to duplicate the whole `PCR` repo here. The point is to make the link explicit, visible, and interpretable from this benchmark page.
+
+Current exact-root post-fit reference figures:
+
+![Post-fit win counts](figures/fig6_pulse_rate_win_counts.png)
+
+![Post-fit method means](figures/fig7_pulse_rate_method_means.png)
+
+![Post-fit behavior by true clock model](figures/fig8_postfit_by_clock_model.png)
+
+Current exact-root post-fit reference table:
+
+| Method | Pulse score | Burst loss | Tempo composite | Mean MAE | Rate irregularity |
+|---|---:|---:|---:|---:|---:|
+| `chronos` | `0.954` | `0.064` | `0.049` | `0.497` | `0.759` |
+| `treePL` | `0.857` | `0.212` | `0.143` | `1.924` | `0.939` |
 
 ## Future extensions
 
