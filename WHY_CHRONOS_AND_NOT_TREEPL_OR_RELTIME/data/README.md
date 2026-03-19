@@ -146,7 +146,7 @@ Suggested `metric_family` values:
 
 The historical plotting script [../make_figures_and_summary.R](../make_figures_and_summary.R) still reads the old exact-root benchmark CSV directly.
 
-Minimum expected legacy columns:
+Required columns for the current three-method exact-root layout:
 
 - `condition`
 - `clock_model`
@@ -156,9 +156,6 @@ Minimum expected legacy columns:
 - `replicate`
 - `treePL_MAE`
 - `chronos_MAE`
-
-Optional legacy column:
-
 - `reltime_MAE`
 
-If `reltime_MAE` is present, the legacy summaries and figures should include `RelTime` on equal footing with `chronos` and `treePL` rather than silently dropping it.
+Archived historical CSVs may still lack `reltime_MAE`. The plotting script should tolerate that case for backward compatibility, but the intended benchmark layout is now explicitly three-method. Any refreshed exact-root benchmark file should carry `RelTime` and plot it on equal footing with `chronos` and `treePL`.

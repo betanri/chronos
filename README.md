@@ -4,7 +4,7 @@ This repository now centers on a **multi-benchmark comparison of `chronos`, `tre
 
 ## Main benchmark suite
 
-## [BENCHMARK SUITE: chronos, treePL, and RelTime](WHY_CHRONOS_AND_NOT_TREEPL/README.md)
+## [BENCHMARK SUITE: chronos, treePL, and RelTime](WHY_CHRONOS_AND_NOT_TREEPL_OR_RELTIME/README.md)
 
 This is the active benchmark write-up. It is being rebuilt from the old single exact-root benchmark into a broader suite with:
 
