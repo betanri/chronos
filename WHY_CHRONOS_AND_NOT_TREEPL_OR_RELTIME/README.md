@@ -96,25 +96,21 @@ Current in-progress snapshot used while the full benchmark finishes:
 
 This is the current three-method benchmark view. The exact-root reference figures below remain useful context, but the active suite now includes `RelTime` as a first-class method.
 
-## Embedded reference figures
+## Embedded suite figures
 
-### Exact-root benchmark figures
+These are the current provisional `A-E` suite figures. They are built from the live multi-benchmark snapshot above and treat `RelTime` as a first-class method.
 
-**Fig 1. Overall MAE distribution**
+**Fig 1. Cross-benchmark rank summary**
 
-![Overall MAE distribution](figures/fig1_overall_mae_boxplot.png)
+![Cross-benchmark rank summary](figures/fig1_benchmark_suite_rank_summary.png)
 
-**Fig 2. Mean MAE by true clock regime**
+**Fig 2. Benchmark-by-benchmark MAE with `chronos` split by model**
 
-![Mean MAE by true clock regime](figures/fig2_mae_by_true_clock.png)
+![Benchmark-by-benchmark MAE with chronos split by model](figures/fig2_benchmark_suite_model_specific_mae.png)
 
-**Fig 3. Mean MAE across extinction and heterotachy**
+**Fig 3. `chronos` model recovery across benchmarks**
 
-![MAE heatmap across extinction and heterotachy](figures/fig3_mae_heatmap_mu_heterotachy.png)
-
-**Fig 4. Extinction × heterotachy interaction**
-
-![Interaction plot across extinction and heterotachy](figures/fig4_interaction_heterotachy_extinction.png)
+![Chronos model recovery across benchmarks](figures/fig3_benchmark_suite_model_recovery.png)
 
 ## Representative tree panel
 
@@ -130,13 +126,26 @@ This is the current three-method benchmark view. The exact-root reference figure
 
 This panel is meant to stay interpretable at a glance. It is not supposed to be a full gallery of every condition.
 
-Current compact reference panel:
+The final `A-E` representative tree panel is still being assembled. It will be one row per benchmark with fixed columns `reference`, `chronos`, `RelTime`, and `treePL`.
+
+## Exact-root archived reference
+
+The exact-root reference file currently in this folder predates the current three-method `A-E` suite, so the material below is archived reference context rather than the main benchmark story.
+
+<details>
+<summary><strong>Open archived exact-root figures and tables</strong></summary>
+
+### Exact-root reference figures
+
+![Overall MAE distribution](figures/fig1_overall_mae_boxplot.png)
+
+![Mean MAE by true clock regime](figures/fig2_mae_by_true_clock.png)
+
+![MAE heatmap across extinction and heterotachy](figures/fig3_mae_heatmap_mu_heterotachy.png)
+
+![Interaction plot across extinction and heterotachy](figures/fig4_interaction_heterotachy_extinction.png)
 
 ![Representative tree panel](figures/fig5_representative_trees_compact.png)
-
-## Exact-root reference tables
-
-The exact-root reference file currently in this folder predates the current three-method `A-E` suite, so the summary tables below show the archived `chronos` + `treePL` comparison for that dataset. They remain useful as a reference panel while the new suite-level figures are being filled in.
 
 ### By true clock regime
 
@@ -170,6 +179,8 @@ The exact-root reference file currently in this folder predates the current thre
 | `correlated` | `134 / 180` | `0.744` |
 | `discrete` | `0 / 180` | `0.000` |
 | `relaxed` | `0 / 180` | `0.000` |
+
+</details>
 
 ## `treePL` environment diagnostic
 
@@ -218,15 +229,9 @@ This page will therefore include:
 
 The point is not to duplicate the whole `PCR` repo here. The point is to make the link explicit, visible, and interpretable from this benchmark page.
 
-Current exact-root post-fit reference figures:
+Suite-level PCR summary will be embedded here once the current multi-benchmark post-fit tables are finalized.
 
-![Post-fit win counts](figures/fig6_pulse_rate_win_counts.png)
-
-![Post-fit method means](figures/fig7_pulse_rate_method_means.png)
-
-![Post-fit behavior by true clock model](figures/fig8_postfit_by_clock_model.png)
-
-Current exact-root post-fit reference table:
+Current archived exact-root post-fit reference table:
 
 | Method | Pulse score | Burst loss | Tempo composite | Mean MAE | Rate irregularity |
 |---|---:|---:|---:|---:|---:|

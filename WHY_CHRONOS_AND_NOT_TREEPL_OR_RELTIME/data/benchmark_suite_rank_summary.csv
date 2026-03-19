@@ -1,1 +1,16 @@
 benchmark,benchmark_label,method_family,mean_rank
+A,A,chronos,2
+A,A,RelTime,1
+A,A,treePL,3
+B,B,chronos,2
+B,B,RelTime,1
+B,B,treePL,3
+C,C,chronos,2
+C,C,RelTime,1
+C,C,treePL,3
+D,D,chronos,2
+D,D,RelTime,1
+D,D,treePL,3
+E,E,chronos,2
+E,E,RelTime,1
+E,E,treePL,3

@@ -1,1 +1,4 @@
 run,label,bundles_complete,mean_treePL_mae,median_treePL_mae,mean_delta_vs_baseline,mean_runtime_sec
+tenv_local,Tenv local,36,8.84,7.27,2.31,222.3
+tenvp_local,TenvP local,36,6.65,7.27,-0.06,125.5
+tenv_oscer,Tenv OSCER,36,6.36,6.34,0.01,470.3

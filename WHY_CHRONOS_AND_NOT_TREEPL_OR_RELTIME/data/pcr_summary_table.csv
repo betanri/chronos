@@ -1,1 +1,5 @@
 dataset,metric_family,best_method,summary_value,interpretation
+Exact-root reference,pulse preservation,chronos,0.954,Best pulse preservation in the exact-root reference benchmark
+Exact-root reference,gap burden,chronos,NA,Gap burden is not informative in the root-only exact-root design
+Exact-root reference,rate irregularity,chronos,0.759,Lower rate irregularity than treePL in the exact-root reference benchmark
+Exact-root reference,overall post-fit rank,chronos,1,Best overall post-fit behavior in the exact-root reference benchmark
