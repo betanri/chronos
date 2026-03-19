@@ -1,189 +1,151 @@
-# Why Chronos and not treePL?
+# Benchmark suite: chronos, treePL, and RelTime
 
-Because treePL is widely used for divergence-time analyses of large phylogenies, it is often the default choice. Excluding computationally intensive Bayesian methods that are impractical at this scale, this benchmark tests whether that default is warranted under the simulation conditions examined here.
+This page is now the **main benchmark-suite summary** for `chronos`, `treePL`, and `RelTime`.
 
-I compared **treePL** and **chronos** under the same topology, calibration, and replicate grid.
+The folder name is historical. The benchmark itself is no longer framed as only “chronos versus treePL”; `RelTime` is part of the main comparison layer throughout this page.
 
-- Total tests: **720** (4 true clock regimes x 3 extinction levels x 2 heterotachy levels x 30 replicates)
-- Same topology and exact root calibration for both methods
-- treePL tuning: smooth in `{0.1, 1, 10}`
-- chronos tuning: model in `{clock, correlated, relaxed, discrete}`, lambda in `{0.1, 1, 10}`, robust selector
+The old exact-root 720-run benchmark was useful, but it is no longer enough on its own. The active benchmark story is now broader:
 
-## Three layers to keep separate
+- `A-E` main benchmarks across different calibration regimes
+- `RelTime` included as a full equal, not as an afterthought
+- future `P1/P2` extensions for tree-size scaling
+- compact `treePL` environment diagnostics (`Tenv`)
+- one linked `PCR` section for post-fit interpretation
 
-This pipeline treats three things as distinct:
+Final numbers will be plugged in as the current runs finish. The point of this page is to put the **new structure** in place now, so the repo already matches the benchmark we are actually running.
 
-1. `clock fitting`
-   - choosing among chronos clock models such as `clock`, `correlated`, `relaxed`, and `discrete`
-2. `lambda tuning`
-   - choosing the penalty/smoothing strength within the chronos search
-3. `post-fit evaluation metrics`
-   - evaluating the dated trees that come out of that fitting process
+## Benchmark suite
 
-That distinction matters here. The original 720 benchmark is still first and foremost a method comparison based on dating accuracy and stability. The pulse, gap, and rate metrics are a separate post-fit evaluation layer. They do not replace clock fitting or lambda tuning, and they do not replace the original MAE benchmark. They help interpret how the resulting chronograms behave once fitting is already done. That post-fit layer lives in [PhyloChronoRank (PCR)](https://github.com/betanri/PhyloChronoRank).
+| Benchmark | Purpose | Calibration design | Status |
+|---|---|---|---|
+| `A` | idealized exact-root benchmark | exact root age only | active |
+| `B` | sparse wide-bracket benchmark | root bracket + 5 internal brackets | active |
+| `C` | sparse tight-bracket benchmark | root bracket + 5 tight internal brackets | active |
+| `D` | sparse minimum-only benchmark | root bracket + 5 internal minimums | active |
+| `E` | richer wide-bracket benchmark | root bracket + 10 internal brackets | active |
+| `P1` | small-tree extension | same logic on smaller trees | planned |
+| `P2` | large-tree extension | same logic on larger trees | planned |
 
-One design caveat should be kept explicit from the start: this benchmark uses an exact root age and no internal calibrations. That makes it an idealized, calibration-sparse comparison. It is informative, but it is not the same thing as testing the methods under the more common empirical case of uncertain root age plus multiple internal calibrations.
+## Reporting layers
 
-## Simulation design (how tests were generated)
+This suite keeps four layers separate:
 
-- Birth-death simulation used `lambda = 1` and `mu in {0, 0.5, 0.8}`.
-- Trees were first simulated with target extant richness `N_FULL = 1500` tips.
-- For `mu > 0`, extinct lineages were not retained in the dated dataset: extinct branches were dropped by extant-tip sampling before final pruning.
-- Then each tree was randomly pruned to `N_PRUNED = 150` tips for dating/evaluation.
-- True node ages came from this 150-tip pruned true tree.
-- Phylograms were generated from true-time branch durations by clock-specific rate transforms:
-  - `strict`: all branch rates = 1.
-  - `independent`: branch rates `exp(N(0, heterotachy))`.
-  - `discrete`: 3-rate categories `exp(c(-1,0,1) * 2 * heterotachy)` with probs `(0.25, 0.5, 0.25)`.
-  - `autocorrelated`: child rate = parent rate `* exp(N(0, heterotachy))`, starting at root rate = 1.
-- Heterotachy levels were `H in {0.05, 0.25}`.
-- Calibration strategy was root-only and identical for both methods:
-  - root minimum age = root maximum age = true root age.
-- Hyperparameter/model search in this 720-run benchmark:
-  - treePL: smooth grid `{0.1, 1, 10}`.
-  - chronos: model grid `{clock, correlated, relaxed, discrete}`, lambda grid `{0.1, 1, 10}`.
-  - robust chronos selector settings: `PLOG_CLOCK_SWITCH_THRESH=1`, `PLOG_NONCLOCK_SWITCH_THRESH=2`, `PLOG_TIE_EPS=2`, `K_FIT_GRID={2,3,5,10}`.
+1. `dating accuracy`
+   - MAE by method and by benchmark
+2. `chronos model behavior`
+   - `clock`, `discrete`, `correlated`, and `relaxed` reported separately
+3. `treePL environment sensitivity`
+   - compact `Tenv` comparison on identical saved bundles
+4. `post-fit chronogram plausibility`
+   - summarized through the linked `PCR` framework
 
-That search is balanced in one specific sense: both methods were given the same three-value smoothing grid. The asymmetry is not that treePL got fewer smoothing values, but that chronos can also search across multiple clock models. That is inherent to the methods, not a tuning bias. Even so, the benchmark should still be read as one search design, not as the last possible word on treePL tuning.
+That separation matters. A method can date well while still recovering clock models poorly. A dated tree can also look plausible or implausible after fitting, which is a different question again. `RelTime` is part of the main dating comparison, not a side method.
 
-## Headline result
+## Main figure set
 
-- Mean MAE: treePL **1.8113** vs chronos **0.4966**
-- Head-to-head (both finite, n=635): chronos better in **558/635 (87.9%)**
-- treePL failed to return finite MAE in **85/720** tests
+The repo is being reorganized around a compact main figure set:
 
-## By true clock model (mean MAE; lower is better)
+- `Fig 1`: overall cross-benchmark rank summary across `A-E`
+- `Fig 2`: per-benchmark MAE panels with `chronos` split by model, plus `RelTime` and `treePL`
+- `Fig 3`: clock-model recovery across benchmarks
+- `Fig 4`: representative tree-shape comparison panel with **one row per benchmark (`A-E`)**
+- `PCR` figure: compact empirical post-fit summary
+- `PCR` table: compact metric/dataset interpretation table
 
-- strict (n both=180): treePL **1.0888** | chronos **0.0041**
-- autocorrelated (n both=136): treePL **4.1675** | chronos **0.9149**
-- independent (n both=160): treePL **1.1317** | chronos **0.4363**
-- discrete (n both=159): treePL **1.2980** | chronos **0.6309**
+The old single-benchmark figure stack is not the main story anymore, so it is no longer surfaced here.
 
-## By heterotachy (mean MAE)
+## What the benchmark is testing
 
-- H=0.05 (n both=341): treePL **1.2876** | chronos **0.0885**
-- H=0.25 (n both=294): treePL **2.4188** | chronos **0.9046**
+The main benchmark asks:
 
-## By extinction (mu; mean MAE)
+- when root age is exact, sparse, bracketed, or minimum-only, which method dates best?
+- how much does the answer depend on the true clock regime?
+- how often does `chronos` recover the correct clock model?
+- does `treePL` behave consistently across environments?
 
-- mu=0.0 (n both=207): treePL **0.7540** | chronos **0.2256**
-- mu=0.5 (n both=211): treePL **1.1017** | chronos **0.3711**
-- mu=0.8 (n both=217): treePL **3.5100** | chronos **0.8930**
+The benchmark is therefore no longer just “chronos versus treePL under one favorable setup.” It is now a structured test of **calibration regime**, **clock regime**, **heterotachy**, **extinction**, and later **tree size**.
 
-## Chronos model recovery (true simulated model vs selected model)
+## Current benchmark outputs to report
 
-- Overall exact recovery: **313/720 (43.5%)**
-- clock: **179/180 (99.4%)**
-- correlated: **134/180 (74.4%)**
-- discrete: **0/180 (0.0%)**
-- relaxed: **0/180 (0.0%)**
+The final page will report at least these tables:
 
-This means chronos is much better on age accuracy in this benchmark, but its selector tends to collapse relaxed/discrete scenarios into clock/correlated solutions under this robust setup.
+- benchmark-level MAE summary across `A-E`
+- benchmark-level MAE summary with `RelTime` reported on equal footing
+- model-specific `chronos` MAE by benchmark
+- clock-model recovery summary by benchmark
+- method ranking summary across benchmarks
+- compact `PCR` metric table
 
-## Caveat: clock model fitting vs dating accuracy
+The expected input layout for those tables and figures is documented in [data/README.md](data/README.md).
 
-Chronos had strong age accuracy in this benchmark, but clock-model recovery was imperfect (especially for true `discrete` and `relaxed` scenarios under this robust selector). This is an important caveat: good dating performance does not guarantee exact recovery of the generating clock model.
+## Representative tree panel
 
-That caveat is exactly why the broader comparative framework matters. In addition to MAE and failure rate, the benchmark can also be read through post-fit evaluation metrics that ask how the resulting chronograms behave biologically after model fitting and lambda tuning are finished.
+`Fig 4` will be a compact multi-row panel:
 
-### Recovery by model (exact numbers)
+- one row each for `A`, `B`, `C`, `D`, and `E`
+- the same four columns in every row:
+  - `reference`
+  - `chronos`
+  - `RelTime`
+  - `treePL`
+- intended to show the benchmark-specific shape differences without taking over the whole page
 
-- **Overall exact recovery:** `313/720 (43.5%)`
-- **By true model:**
-  - `clock`: `179/180 (99.4%)`
-  - `correlated`: `134/180 (74.4%)`
-  - `discrete`: `0/180 (0.0%)`
-  - `relaxed`: `0/180 (0.0%)`
-- **Main misclassification pattern (from confusion matrix):**
-  - true `discrete` -> selected `correlated`: `149/180`
-  - true `relaxed` -> selected `correlated`: `119/180`
-  - true `relaxed` -> selected `clock`: `61/180`
-  - true `discrete` -> selected `clock`: `31/180`
+This panel is meant to stay interpretable at a glance. It is not supposed to be a full gallery of every condition.
 
-These recovery results are the caveat: chronos delivered better age accuracy than treePL overall, but model identification was uneven across clock regimes.
+## `treePL` environment diagnostic
 
-## Post-fit evaluation metrics
+<details>
+<summary><strong>Tenv: compact treePL environment diagnostic</strong></summary>
 
-The benchmark is centered on MAE and failure rate, and it should still be read that way first. But the post-fit evaluation layer adds three complementary metrics that help interpret method behavior beyond raw dating error:
+`Tenv` is a small side benchmark used to test whether `treePL` behaves the same way across environments on the **same exact saved input bundles**.
 
-- `pulse preservation`
-  - asks whether the dated tree keeps the same diversification rhythm as the reference tree
-- `gap burden`
-  - asks how much fossil-gap burden or calibration slack the dated tree implies
-  - this is not usable in the 720 benchmark because the design uses only a fixed root calibration
-- `rate irregularity`
-  - asks whether the dated tree requires extreme or erratic branchwise rate changes
+It is not a replacement for the main `A-E` benchmark. It is a targeted diagnostic layer that asks a different question:
 
-These are post-fit evaluation metrics. They are not the same thing as:
+- do local and OSCER reruns of the same `treePL` input reproduce one another?
+- when they disagree, is the discrepancy mild or catastrophic?
 
-- `clock fitting`
-  - selecting among chronos clock models
-- `lambda tuning`
-  - selecting the penalty value used during chronos fitting
+The reporting here should stay compact:
 
-They operate one step later by comparing the resulting dated trees.
+- local vs OSCER summary
+- baseline delta summary
+- one short interpretation paragraph
 
-For the 720 simulation outputs rescored under this post-fit evaluation layer, the interpretation remains favorable to chronos:
+</details>
 
-- `pulse preservation`: chronos better in all 24 representative-condition comparisons by `pulse_score`, and in 23/24 by `burst_loss` and `tempo_composite`
-- `rate irregularity`: chronos better in 18/24 representative-condition comparisons by `rate_irregularity`
-- `gap burden`: not applicable by design under root-only calibration
+## `PCR` post-fit interpretation
 
-So these post-fit evaluation metrics do not overturn the original conclusion. They reinforce it, while adding a more biologically informative view of tree shape and implied rate behavior.
+The benchmark page also needs one compact `PCR` section, because the benchmark and `PCR` answer different but connected questions.
 
-They also show that the picture is not uniform across every simulated regime. treePL still does better in some specific strata:
+The benchmark asks:
 
-- `rate irregularity`, strict-clock conditions: treePL wins `5/6`, chronos wins `1/6`
-- `MAE`, discrete conditions: treePL wins `2/6`, chronos wins `4/6`
-- `tempo_composite`, autocorrelated conditions: treePL wins `1/6`, chronos wins `5/6`
-- `rate irregularity`, autocorrelated conditions: treePL wins `1/6`, chronos wins `5/6`
+- which method dates better under controlled simulation?
 
-Outside those specific strata, chronos wins the remaining representative-condition comparisons for the post-fit metrics summarized here.
+`PCR` asks:
 
-## Figures
+- once trees have been fitted, which chronograms behave more plausibly?
 
-![Overall MAE boxplot](figures/fig1_overall_mae_boxplot.png)
+This page will therefore include:
 
-![MAE by true clock](figures/fig2_mae_by_true_clock.png)
+- one `PCR` summary figure
+- one `PCR` summary table
 
-![MAE heatmaps by heterotachy and extinction (same scale)](figures/fig3_mae_heatmap_mu_heterotachy.png)
+The point is not to duplicate the whole `PCR` repo here. The point is to make the link explicit, visible, and interpretable from this benchmark page.
 
-![Heterotachy x extinction interaction plot](figures/fig4_interaction_heterotachy_extinction.png)
+## Future extensions
 
-![Representative trees (compact; mu=0.8, H=0.25)](figures/fig5_representative_trees_compact.png)
+`P1` and `P2` are reserved for the later tree-size extension. They should be integrated into the same page structure once those runs are ready, not split into separate benchmark pages.
 
-*Footnote:* This panel shows a representative subset only: `mu=0.8`, `H=0.25` across the four true clock regimes (strict, autocorrelated, independent, discrete). Other conditions (`mu=0`, `mu=0.5`, and `H=0.05`) are not shown here. Under the strict-clock simulation, heterotachy is not applied (`rates = 1`), so strict phylograms remain ultrametric even when `H=0.25`.
+## Figure/data scaffold
 
-## Post-fit evaluation figures
+The new suite-level figure scaffold lives here:
 
-![Representative-condition wins by metric](figures/fig6_pulse_rate_win_counts.png)
+- [make_benchmark_suite_figures.R](make_benchmark_suite_figures.R)
+- [data/README.md](data/README.md)
 
-This figure summarizes the 720 rescoring under the post-fit evaluation layer. Pulse and rate metrics are computed on one representative tree for each of the 24 simulation conditions, whereas MAE uses all replicate values.
+The legacy exact-root plotting script also remains available for the historical 720-run dataset:
 
-![Method means under pulse and rate metrics](figures/fig7_pulse_rate_method_means.png)
+- [make_figures_and_summary.R](make_figures_and_summary.R)
 
-This figure shows method means for the pulse-preservation and rate-irregularity summaries. Chronos has higher `pulse_score` and lower `pulse_error`, `burst_loss`, and `rate_irregularity` than treePL in these representative-tree comparisons.
+That legacy script should now be read as a small benchmark utility for `chronos`, `treePL`, and `RelTime` whenever a `reltime_MAE` column is present in the input CSV. It is no longer framed as a two-method plotting path.
 
-![Post-fit results by true clock model](figures/fig8_postfit_by_clock_model.png)
-
-This figure shows the places where treePL still wins and where chronos still wins within the same strata. The clearest case is `rate irregularity` under strict-clock simulations, where treePL wins `5/6` representative conditions and chronos wins `1/6`. Smaller treePL advantages also appear for `MAE` in discrete simulations (`2/6` treePL, `4/6` chronos) and for `tempo_composite` and `rate irregularity` in isolated autocorrelated conditions (`1/6` treePL, `5/6` chronos).
-
-## Practical interpretation
-
-- The post-fit evaluation layer still favors chronos overall: chronos wins all `24/24` representative-condition comparisons by `pulse_score`, `23/24` by `burst_loss` and `tempo_composite`, and `18/24` by `rate_irregularity`.
-- The strongest exception is `rate irregularity` under strict-clock simulations, where treePL wins `5/6` representative conditions. Smaller treePL advantages also occur for `MAE` in discrete simulations and for isolated autocorrelated comparisons in `tempo_composite` and `rate irregularity`.
-- `Gap burden` is not informative in this 720 benchmark because the design uses only a fixed root calibration, so the relevant post-fit evidence here is pulse preservation plus rate irregularity.
-- For empirical analyses, keep clock fitting, lambda tuning, and post-fit evaluation as separate reporting layers, and present fit-based model choice together with pulse preservation, gap burden when available, and rate irregularity.
-
-## Data files
-
-- `by_clock_summary.csv`
-- `by_mu_summary.csv`
-- `by_heterotachy_summary.csv`
-- `chronos_recovery_summary.csv`
-- `chronos_recovery_confusion_matrix.csv`
-- `data/pulse_metric_720_method_mean_summary.csv`
-- `data/pulse_metric_720_wins_table.csv`
-- `data/pulse_metric_720_delta_by_clock_model.csv`
-- `data/pulse_metric_720_condition_paired_treepl_vs_chronos.csv`
-- `data/pulse_metric_720_clock_model_wins.csv`
+Those files define the expected summary inputs so the final values can be dropped in without another repo redesign.

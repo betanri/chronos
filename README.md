@@ -1,17 +1,42 @@
 # Chronos
 
-This repository centers on a chronos-vs-treePL benchmark and points to the companion `PhyloChronoRank (PCR)` repo for shared dating-grid generation and post-fit chronogram comparison.
+This repository now centers on a **multi-benchmark comparison of `chronos`, `treePL`, and `RelTime`**, paired with a compact `treePL` environment diagnostic and a companion post-fit evaluation layer in `PhyloChronoRank (PCR)`.
 
-## [WHY CHRONOS AND NOT TREEPL](WHY_CHRONOS_AND_NOT_TREEPL/README.md)
+## Main benchmark suite
 
-A 720-run benchmark showing, under an exact-root and calibration-sparse simulation design, that chronos had lower dating error and fewer failures than treePL (conditions tested: 4 clock regimes x 3 extinction levels x 2 heterotachy levels x 30 replicates). It is there to justify method choice with data, but it should be read as an idealized benchmark rather than as a full proxy for empirical dating problems with uncertain root ages and multiple internal calibrations.
+## [BENCHMARK SUITE: chronos, treePL, and RelTime](WHY_CHRONOS_AND_NOT_TREEPL/README.md)
+
+This is the active benchmark write-up. It is being rebuilt from the old single exact-root benchmark into a broader suite with:
+
+- `A-E` main benchmarks
+- `RelTime` treated as a full equal to `chronos` and `treePL`
+- future `P1/P2` tree-size extensions
+- compact `treePL` environment diagnostics (`Tenv`)
+- a linked `PCR` post-fit interpretation layer
+
+The benchmark page is now the main place where we summarize:
+
+- method accuracy by benchmark
+- `chronos` model-specific behavior
+- `RelTime` performance on equal footing with `chronos` and `treePL`
+- clock-model recovery
+- `treePL` environment sensitivity
+- how the empirical `PCR` layer connects back to the simulation benchmark
+
+## Shared dating workflow
 
 ## [SHARED DATING GRID PIPELINE: PhyloChronoRank (PCR)](https://github.com/betanri/PhyloChronoRank/blob/main/1_PCR_CUSTOM_DATING_PIPELINE_FROM_PHYLOGRAMS/README.md)
 
-This guide runs `chronos`, `treePL`, and `RelTime` from one shared calibration source, using either a calibration CSV or a reference backbone time tree for congruification. It is the active dating workflow paired with the chronos benchmark in this repo.
+This is the shared fitting workflow used after calibration inputs have been defined. It runs `chronos`, `treePL`, and `RelTime` from one calibration source, either from a calibration table or from a reference time tree by congruification.
 
-## [POST-FIT EVALUATION METRICS: PhyloChronoRank (PCR)](https://github.com/betanri/PhyloChronoRank)
+## Post-fit evaluation layer
 
-This companion repo, `PhyloChronoRank (PCR)`, is the comparison layer applied after fitting is finished. It asks a different question from model fitting: once you already have dated trees, which one behaves most plausibly as a chronogram?
+## [POST-FIT EVALUATION METRICS: PhyloChronoRank (PCR)](https://github.com/betanri/PhyloChronoRank/blob/main/2_PCR_POSTFIT_METRICS/README.md)
 
-It evaluates trees under `pulse preservation`, `gap burden`, and `rate irregularity`, and shows how those metrics can be read across two empirical datasets. In plain language, it turns visual impressions about branching bursts, calibration fit, and implied rate behavior into explicit side-by-side comparisons.
+`PCR` is the post-fit comparison layer. It evaluates dated trees after fitting is already done, using metrics such as:
+
+- pulse preservation
+- gap burden
+- rate irregularity
+
+In plain terms, the benchmark in this repo asks **which method dates better under controlled simulations**, while `PCR` asks **which fitted chronogram behaves more plausibly once it already exists**.
