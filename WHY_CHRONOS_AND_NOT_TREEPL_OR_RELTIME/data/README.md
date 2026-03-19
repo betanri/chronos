@@ -142,9 +142,9 @@ Suggested `metric_family` values:
 - `rate irregularity`
 - `overall post-fit rank`
 
-## Legacy exact-root input
+## Exact-root input
 
-The historical plotting script [../make_figures_and_summary.R](../make_figures_and_summary.R) still reads the old exact-root benchmark CSV directly.
+The plotting script [../make_figures_and_summary.R](../make_figures_and_summary.R) reads the exact-root benchmark CSV directly.
 
 Required columns for the current three-method exact-root layout:
 
@@ -158,4 +158,4 @@ Required columns for the current three-method exact-root layout:
 - `chronos_MAE`
 - `reltime_MAE`
 
-Archived historical CSVs may still lack `reltime_MAE`. The plotting script should tolerate that case for backward compatibility, but the intended benchmark layout is now explicitly three-method. Any refreshed exact-root benchmark file should carry `RelTime` and plot it on equal footing with `chronos` and `treePL`.
+Older CSVs may still lack `reltime_MAE`. The plotting script should tolerate that case for backward compatibility, but the intended benchmark layout is now explicitly three-method. Any refreshed exact-root benchmark file should carry `RelTime` and plot it on equal footing with `chronos` and `treePL`.

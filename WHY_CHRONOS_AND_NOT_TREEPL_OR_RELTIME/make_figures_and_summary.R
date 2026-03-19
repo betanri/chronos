@@ -100,7 +100,7 @@ boxplot(
   box_data[plot_methods],
   col = unname(method_colors[plot_methods]),
   ylab = "log10(MAE)",
-  main = "Overall dating error across the legacy exact-root benchmark (chronos, treePL, RelTime)"
+  main = "Overall dating error across the exact-root benchmark (chronos, treePL, RelTime)"
 )
 mtext("Lower is better; non-finite runs are excluded from log-scale panels", side = 1, line = 4, cex = 0.9)
 dev.off()
@@ -124,7 +124,7 @@ barplot(
 legend("topright", legend = method_labels[plot_methods], fill = unname(method_colors[plot_methods]), bty = "n")
 dev.off()
 
-# Figure 3: MAE heatmaps for the legacy exact-root comparison on the same color scale
+# Figure 3: MAE heatmaps for the exact-root comparison on the same color scale
 mu_vals <- sort(unique(d$mu))
 het_vals <- sort(unique(d$heterotachy))
 

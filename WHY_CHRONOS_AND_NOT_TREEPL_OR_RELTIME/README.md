@@ -2,7 +2,7 @@
 
 This page is now the **main benchmark-suite summary** for `chronos`, `treePL`, and `RelTime`.
 
-The folder name is historical. The benchmark itself is a three-method comparison throughout this page, with `RelTime` presented on the same footing as `chronos` and `treePL`.
+This benchmark page is a three-method comparison throughout, with `RelTime` presented on the same footing as `chronos` and `treePL`.
 
 The old exact-root 720-run benchmark was useful, but it is no longer enough on its own. The active benchmark story is now broader:
 
@@ -142,10 +142,10 @@ The new suite-level figure scaffold lives here:
 - [make_benchmark_suite_figures.R](make_benchmark_suite_figures.R)
 - [data/README.md](data/README.md)
 
-The legacy exact-root plotting script also remains available for the historical 720-run dataset:
+The exact-root plotting script also remains available for the 720-run dataset:
 
 - [make_figures_and_summary.R](make_figures_and_summary.R)
 
-That legacy script should now be read as a small benchmark utility for `chronos`, `treePL`, and `RelTime`. For any refreshed exact-root rerun, `RelTime` should be present in the input and shown alongside the other two methods; two-method input is only an archived fallback.
+That script should now be read as a small benchmark utility for `chronos`, `treePL`, and `RelTime`. For any refreshed exact-root rerun, `RelTime` should be present in the input and shown alongside the other two methods; two-method input is only a backward-compatible fallback.
 
 Those files define the expected summary inputs so the final values can be dropped in without another repo redesign.
