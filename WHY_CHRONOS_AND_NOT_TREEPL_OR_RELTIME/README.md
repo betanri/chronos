@@ -128,6 +128,10 @@ This panel is meant to stay interpretable at a glance. It is not supposed to be 
 
 The final `A-E` representative tree panel is still being assembled. It will be one row per benchmark with fixed columns `reference`, `chronos`, `RelTime`, and `treePL`.
 
+Temporary exact-root reference tree panel while the full `A-E` panel is being assembled:
+
+![Representative tree panel](figures/fig5_representative_trees_compact.png)
+
 ## Exact-root archived reference
 
 The exact-root reference file currently in this folder predates the current three-method `A-E` suite, so the material below is archived reference context rather than the main benchmark story.
@@ -229,7 +233,13 @@ This page will therefore include:
 
 The point is not to duplicate the whole `PCR` repo here. The point is to make the link explicit, visible, and interpretable from this benchmark page.
 
-Suite-level PCR summary will be embedded here once the current multi-benchmark post-fit tables are finalized.
+Current PCR coverage on this page:
+
+| Method | PCR status on this page |
+|---|---|
+| `chronos` | exact-root reference post-fit table shown below; suite-level PCR pending |
+| `RelTime` | explicitly part of the planned suite-level PCR comparison; summary table pending |
+| `treePL` | exact-root reference post-fit table shown below; suite-level PCR pending |
 
 Current archived exact-root post-fit reference table:
 
