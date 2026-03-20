@@ -18,6 +18,41 @@ read_if_populated <- function(path) {
   x
 }
 
+is_valid_phylo <- function(tr) {
+  !is.null(tr) &&
+    inherits(tr, "phylo") &&
+    !is.null(tr$edge.length) &&
+    length(tr$edge.length) > 0 &&
+    all(is.finite(tr$edge.length))
+}
+
+scale_to_unit_depth <- function(tr) {
+  if (!is_valid_phylo(tr)) return(tr)
+  depths <- tryCatch(ape::node.depth.edgelength(tr), error = function(e) NULL)
+  if (is.null(depths)) return(tr)
+  tip_depths <- depths[seq_len(ape::Ntip(tr))]
+  max_depth <- suppressWarnings(max(tip_depths, na.rm = TRUE))
+  if (!is.finite(max_depth) || max_depth <= 0) return(tr)
+  tr$edge.length <- tr$edge.length / max_depth
+  tr
+}
+
+plot_tree_from_file <- function(path) {
+  if (is.na(path) || !nzchar(path) || !file.exists(path)) {
+    plot.new()
+    text(0.5, 0.5, "missing tree", cex = 0.9)
+    return(invisible(NULL))
+  }
+  tr <- tryCatch(ape::read.tree(path), error = function(e) NULL)
+  if (!is_valid_phylo(tr)) {
+    plot.new()
+    text(0.5, 0.5, "invalid tree", cex = 0.9)
+    return(invisible(NULL))
+  }
+  tr <- scale_to_unit_depth(tr)
+  plot(tr, show.tip.label = FALSE, no.margin = TRUE, cex = 0.15)
+}
+
 method_df <- read_if_populated(file.path(data_dir, "benchmark_suite_method_summary.csv"))
 recovery_df <- read_if_populated(file.path(data_dir, "benchmark_suite_recovery_summary.csv"))
 rank_df <- read_if_populated(file.path(data_dir, "benchmark_suite_rank_summary.csv"))
@@ -117,7 +152,57 @@ if (!is.null(pcr_df)) {
 }
 
 if (!is.null(tree_panel_df)) {
-  message("Representative tree panel manifest detected. Fig 4 is intended to be assembled as one row per benchmark (A-E) with fixed columns: reference, chronos, RelTime, treePL.")
+  if (!requireNamespace("ape", quietly = TRUE)) {
+    stop("The representative tree panel requires the ape package.")
+  }
+
+  source_col <- if ("tree_path" %in% names(tree_panel_df)) {
+    "tree_path"
+  } else if ("image_path" %in% names(tree_panel_df)) {
+    "image_path"
+  } else {
+    stop("representative_tree_panel_manifest.csv needs either a tree_path or image_path column.")
+  }
+
+  panel <- tree_panel_df[order(tree_panel_df$row_order, tree_panel_df$panel_order), ]
+  row_labels <- unique(panel$benchmark_label[order(panel$row_order)])
+  col_labels <- unique(panel$panel_label[order(panel$panel_order)])
+  n_rows <- length(row_labels)
+  n_cols <- length(col_labels)
+
+  png(file.path(fig_dir, "fig4_benchmark_suite_representative_trees.png"),
+      width = 3000, height = 3600, res = 200)
+  layout(matrix(seq_len((n_rows + 1) * (n_cols + 1)), nrow = n_rows + 1, byrow = TRUE),
+         widths = c(1.8, rep(4.0, n_cols)),
+         heights = c(1.0, rep(4.0, n_rows)))
+
+  par(mar = c(0, 0, 0, 0))
+  plot.new()
+  for (label in col_labels) {
+    plot.new()
+    text(0.5, 0.5, label, font = 2, cex = 1.2)
+  }
+
+  for (row_label in row_labels) {
+    plot.new()
+    pretty_label <- sub(": ", ":\n", row_label, fixed = TRUE)
+    text(0.02, 0.5, pretty_label, adj = c(0, 0.5), font = 2, cex = 1.1)
+
+    row_panel <- panel[panel$benchmark_label == row_label, ]
+    row_panel <- row_panel[order(row_panel$panel_order), ]
+    for (i in seq_len(n_cols)) {
+      par(mar = c(0.4, 0.4, 0.4, 0.4))
+      if (i <= nrow(row_panel)) {
+        plot_tree_from_file(row_panel[[source_col]][i])
+      } else {
+        plot.new()
+        text(0.5, 0.5, "missing panel", cex = 0.9)
+      }
+    }
+  }
+
+  mtext("Representative benchmark trees across calibration designs", outer = TRUE, line = -1.2, cex = 1.25)
+  dev.off()
 }
 
 message("Suite scaffold refresh complete: ", normalizePath(fig_dir, winslash = "/"))

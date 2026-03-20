@@ -114,7 +114,7 @@ These are the current provisional `A-E` suite figures. They are built from the l
 
 ## Representative tree panel
 
-`Fig 4` will be a compact multi-row panel:
+`Fig 4` is a compact multi-row panel:
 
 - one row each for `A`, `B`, `C`, `D`, and `E`
 - the same four columns in every row:
@@ -126,11 +126,13 @@ These are the current provisional `A-E` suite figures. They are built from the l
 
 This panel is meant to stay interpretable at a glance. It is not supposed to be a full gallery of every condition.
 
-The final `A-E` representative tree panel is still being assembled. It will be one row per benchmark with fixed columns `reference`, `chronos`, `RelTime`, and `treePL`.
+All five rows currently use the same completed condition:
 
-Temporary exact-root reference tree panel while the full `A-E` panel is being assembled:
+- `rep_001 / clockstrict_mu0.5_het0.25`
 
-![Representative tree panel](figures/fig5_representative_trees_compact.png)
+That keeps the generating regime fixed while the row-to-row differences reflect the benchmark calibration design. Trees are shown as relative chronograms scaled to unit root-to-tip depth.
+
+![Representative benchmark trees across calibration designs](figures/fig4_benchmark_suite_representative_trees.png)
 
 ## Exact-root archived reference
 

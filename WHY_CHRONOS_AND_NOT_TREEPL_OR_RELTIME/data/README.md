@@ -104,7 +104,7 @@ Required columns:
 - `panel_label`
 - `method`
 - `condition`
-- `image_path`
+- `tree_path`
 
 Suggested `method` values:
 
@@ -121,6 +121,7 @@ Intended use:
   - `chronos`
   - `RelTime`
   - `treePL`
+- `tree_path` should point to a real `.tre` file produced by the benchmark run
 - same output figure can later be extended to `P1/P2` if needed
 
 ## `pcr_summary_table.csv`
