@@ -1,36 +1,27 @@
 benchmark,benchmark_label,completed_reps,method,mae,rank,group
-A,A,30.00,chronos-clock,0.02,1,chronos_model
-A,A,30.00,chronos-correlated,0.88,2,chronos_model
-A,A,30.00,RelTime,0.92,3,core
-A,A,30.00,chronos overall,1.13,4,core
-A,A,30.00,chronos-discrete,1.63,5,chronos_model
-A,A,30.00,chronos-relaxed,3.12,6,chronos_model
-A,A,30.00,treePL,5.60,7,core
-B,B,27.22,chronos-clock,3.52,1,chronos_model
-B,B,27.22,RelTime,5.91,2,core
-B,B,27.22,chronos-discrete,5.92,3,chronos_model
-B,B,27.22,chronos overall,6.72,4,core
-B,B,27.22,chronos-relaxed,7.14,5,chronos_model
-B,B,27.22,treePL,10.40,6,core
-B,B,27.22,chronos-correlated,10.45,7,chronos_model
-C,C,9.97,chronos-clock,0.43,1,chronos_model
-C,C,9.97,RelTime,1.41,2,core
-C,C,9.97,chronos-relaxed,1.42,3,chronos_model
-C,C,9.97,chronos overall,1.93,4,core
-C,C,9.97,chronos-discrete,2.16,5,chronos_model
-C,C,9.97,treePL,2.77,6,core
-C,C,9.97,chronos-correlated,2.90,7,chronos_model
-D,D,7.00,RelTime,5.76,1,core
-D,D,7.00,chronos-clock,7.98,2,chronos_model
-D,D,7.00,chronos-discrete,9.00,3,chronos_model
-D,D,7.00,chronos overall,9.72,4,core
-D,D,7.00,treePL,9.87,5,core
-D,D,7.00,chronos-correlated,11.83,6,chronos_model
-D,D,7.00,chronos-relaxed,14.38,7,chronos_model
-E,E,12.28,chronos-clock,4.89,1,chronos_model
-E,E,12.28,RelTime,5.86,2,core
-E,E,12.28,chronos-relaxed,6.44,3,chronos_model
-E,E,12.28,chronos-discrete,6.65,4,chronos_model
-E,E,12.28,chronos overall,7.15,5,core
-E,E,12.28,treePL,8.93,6,core
-E,E,12.28,chronos-correlated,9.91,7,chronos_model
+A,A,30.00,chronos-clock,0.017,1,chronos_model
+A,A,30.00,chronos-correlated,0.879,2,chronos_model
+A,A,30.00,RelTime MEGA,1.060,3,core
+A,A,30.00,chronos-discrete,1.634,4,chronos_model
+A,A,30.00,chronos-relaxed,3.119,5,chronos_model
+A,A,30.00,treePL,5.598,6,core
+B,B,30.00,chronos-clock,3.603,1,chronos_model
+B,B,30.00,chronos-discrete,5.850,2,chronos_model
+B,B,30.00,chronos-relaxed,7.056,3,chronos_model
+B,B,30.00,RelTime MEGA,7.649,4,core
+B,B,30.00,chronos-correlated,10.415,5,chronos_model
+B,B,30.00,treePL,11.799,6,core
+C,C,30.00,chronos-clock,0.499,1,chronos_model
+C,C,30.00,chronos-discrete,1.857,2,chronos_model
+C,C,30.00,RelTime MEGA,2.310,3,core
+C,C,30.00,chronos-relaxed,2.674,4,chronos_model
+C,C,30.00,chronos-correlated,2.959,5,chronos_model
+C,C,30.00,treePL,3.960,6,core
+D,D,30.00,chronos-clock,7.669,1,chronos_model
+D,D,30.00,RelTime MEGA,9.436,2,core
+D,D,30.00,chronos-discrete,9.686,3,chronos_model
+D,D,30.00,chronos-correlated,12.207,4,chronos_model
+D,D,30.00,treePL,12.346,5,core
+D,D,30.00,chronos-relaxed,12.744,6,chronos_model
+E,E,30.00,RelTime MEGA,8.186,1,core
+E,E,30.00,treePL,9.297,2,core

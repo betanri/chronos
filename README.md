@@ -6,11 +6,11 @@ This repository now centers on a **multi-benchmark comparison of `chronos`, `tre
 
 ## [BENCHMARK SUITE: chronos, treePL, and RelTime](WHY_CHRONOS_AND_NOT_TREEPL_OR_RELTIME/README.md)
 
-This is the active benchmark write-up. It is being rebuilt from the old single exact-root benchmark into a broader suite with:
+This is the active benchmark write-up. It now reports finished `A-E` results and lays out the broader suite structure with:
 
 - `A-E` main benchmarks
 - `RelTime` treated as a full equal to `chronos` and `treePL`
-- future `P1/P2` tree-size extensions
+- future `P1/P2` Paradis-style sequence-simulation extensions
 - compact `treePL` environment diagnostics (`Tenv`)
 - a linked `PCR` post-fit interpretation layer
 

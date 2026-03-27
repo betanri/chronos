@@ -8,23 +8,23 @@ The old exact-root 720-run benchmark was useful, but it is no longer enough on i
 
 - `A-E` main benchmarks across different calibration regimes
 - `RelTime` included as a full equal, not as an afterthought
-- future `P1/P2` extensions for tree-size scaling
+- future `P1/P2` Paradis-style sequence-simulation extensions
 - compact `treePL` environment diagnostics (`Tenv`)
 - one linked `PCR` section for post-fit interpretation
 
-Final numbers will be plugged in as the current runs finish. The point of this page is to put the **new structure** in place now, so the repo already matches the benchmark we are actually running.
+This page now reports the finished current `A-E` benchmark results. The point of the page is to keep the repo aligned with the benchmark family we are actually reporting.
 
 ## Benchmark suite
 
 | Benchmark | Purpose | Calibration design | Status |
 |---|---|---|---|
-| `A` | idealized exact-root benchmark | exact root age only | active |
-| `B` | sparse wide-bracket benchmark | root bracket + 5 internal brackets | active |
-| `C` | sparse tight-bracket benchmark | root bracket + 5 tight internal brackets | active |
-| `D` | sparse minimum-only benchmark | root bracket + 5 internal minimums | active |
-| `E` | richer wide-bracket benchmark | root bracket + 10 internal brackets | active |
-| `P1` | small-tree extension | same logic on smaller trees | planned |
-| `P2` | large-tree extension | same logic on larger trees | planned |
+| `A` | idealized exact-root benchmark | exact root age only | complete |
+| `B` | sparse wide-bracket benchmark | root bracket + 5 internal brackets | complete |
+| `C` | sparse tight-bracket benchmark | root bracket + 5 tight internal brackets | complete |
+| `D` | sparse minimum-only benchmark | root bracket + 5 internal minimums | complete |
+| `E` | richer wide-bracket benchmark | root bracket + 10 internal brackets | complete |
+| `P1` | small Paradis-style extension | sequence simulation + ML phylogram inference (`20` ingroup + outgroup) | planned |
+| `P2` | large Paradis-style extension | sequence simulation + ML phylogram inference (`100` ingroup + outgroup) | planned |
 
 ## Reporting layers
 
@@ -63,7 +63,7 @@ The main benchmark asks:
 - how often does `chronos` recover the correct clock model?
 - does `treePL` behave consistently across environments?
 
-The benchmark is therefore no longer just “chronos versus treePL under one favorable setup.” It is now a structured test of **calibration regime**, **clock regime**, **heterotachy**, **extinction**, and later **tree size**.
+The benchmark is therefore no longer just “chronos versus treePL under one favorable setup.” It is now a structured test of **calibration regime**, **clock regime**, **heterotachy**, **extinction**, and later **Paradis-style sequence-simulation realism**.
 
 ## Current benchmark outputs to report
 
@@ -78,39 +78,26 @@ The final page will report at least these tables:
 
 The expected input layout for those tables and figures is documented in [data/README.md](data/README.md).
 
-## Preliminary live suite snapshot
+## Current `A-E` results
 
-Current in-progress snapshot used while the full benchmark finishes:
+`A-E` are now complete at `30` replicates each. `RelTime` is reported here as `RelTime MEGA`, and `chronos` is reported by model rather than as a combined selector score.
 
-- `A` and `B` are currently being carried by local runs
-- `C`, `D`, and `E` are currently being carried by OSCER runs
-- values below are provisional and will be replaced by the final drop-in suite tables
+| Benchmark | Reps | `chronos-clock` | `chronos-discrete` | `chronos-correlated` | `chronos-relaxed` | `RelTime MEGA` | `treePL` |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `A` | `30.00` | **`0.017`** | `1.634` | `0.879` | `3.119` | `1.060` | `5.598` |
+| `B` | `30.00` | **`3.603`** | `5.850` | `10.415` | `7.056` | `7.649` | `11.799` |
+| `C` | `30.00` | **`0.499`** | `1.857` | `2.959` | `2.674` | `2.310` | `3.960` |
+| `D` | `30.00` | **`7.669`** | `9.686` | `12.207` | `12.744` | `9.436` | `12.346` |
+| `E` | `30.00` | `—` | `—` | `—` | `—` | `8.186` | `9.297` |
 
-| Benchmark | Current source | Completed reps | Current best | MAE | Next best | MAE |
-|---|---|---:|---|---:|---|---:|
-| `A` | local | `30.00` | `chronos-clock` | `0.02` | `chronos-correlated` | `0.88` |
-| `B` | local | `27.22` | `chronos-clock` | `3.52` | `RelTime` | `5.91` |
-| `C` | OSCER | `9.97` | `chronos-clock` | `0.43` | `RelTime` | `1.41` |
-| `D` | OSCER | `7.00` | `RelTime` | `5.76` | `chronos-clock` | `7.98` |
-| `E` | OSCER | `12.28` | `chronos-clock` | `4.89` | `RelTime` | `5.86` |
+For `E`, the finished saved output bundle preserves finalized `treePL` and `RelTime MEGA` means, but the four separate `chronos` model MAEs were not written to disk in the completed run. They are intentionally omitted here rather than replaced by an aggregated `chronos` score.
 
-This is the current three-method benchmark view. The exact-root reference figures below remain useful context, but the active suite now includes `RelTime` as a first-class method.
+Current read:
 
-## Embedded suite figures
-
-These are the current provisional `A-E` suite figures. They are built from the live multi-benchmark snapshot above and treat `RelTime` as a first-class method.
-
-**Fig 1. Cross-benchmark rank summary**
-
-![Cross-benchmark rank summary](figures/fig1_benchmark_suite_rank_summary.png)
-
-**Fig 2. Benchmark-by-benchmark MAE with `chronos` split by model**
-
-![Benchmark-by-benchmark MAE with chronos split by model](figures/fig2_benchmark_suite_model_specific_mae.png)
-
-**Fig 3. `chronos` model recovery across benchmarks**
-
-![Chronos model recovery across benchmarks](figures/fig3_benchmark_suite_model_recovery.png)
+- `chronos-clock` is the best recovered `chronos` model in `A-D`
+- `RelTime MEGA` beats `treePL` in all five benchmarks
+- `RelTime MEGA` beats every reported `chronos` model in `A` and `D`
+- `chronos-clock` beats `RelTime MEGA` in `B` and `C`
 
 ## Representative tree panel
 
@@ -252,7 +239,7 @@ Current archived exact-root post-fit reference table:
 
 ## Future extensions
 
-`P1` and `P2` are reserved for the later tree-size extension. They should be integrated into the same page structure once those runs are ready, not split into separate benchmark pages.
+`P1` and `P2` are reserved for the later Paradis-style sequence-simulation extension. They should be integrated into the same page structure once those runs are ready, not split into separate benchmark pages.
 
 ## Figure/data scaffold
 
